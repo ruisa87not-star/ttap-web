@@ -100,12 +100,36 @@ Or https://app.bitly.com/Bi451JE8j4x/bitlinks/2JmBftW
 
 Go to https://wongjiahau.github.io/ttap-feedback-report/
 
-### How to open on Mac OS?
+## How to open on Mac OS?
 
-After opening TTAP, you should see the following prompt:
+You might face one of the following issues when opening TTAP in Mac OS.
+
+### (1) "TTAP" is damaged and can't be opened
+
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/176dfe46-573e-47c9-851d-18042e2f99c4" />
+
+**Solution**:
+1. Open the Terminal app by pressing `cmd+space`, then type in "terminal":
+
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/09d7880b-b623-44b9-898a-79510033958b" />
+
+2. In the Terminal app, type in `xattr -cr /Applications/TTAP.app/`, then press Enter:
+
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/979f2001-3b88-4b05-b8f9-230c7ccd45ec" />
+
+3. If you see a wall of error message like the one below, repeat Step 2:
+
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/905433ae-8a8c-4337-ba26-aa0f680741f4" />
+
+
+4. Open TTAP app again, and it should work.
+
+
+### (2) "TTAP" cannot be opened because the developer cannot be not verified
+
 
 ![image](https://user-images.githubusercontent.com/23183656/204980269-fd85f693-07fd-4b58-bfb8-643f51199f1c.png)
 
-Then, open _System Preferences_, go to _Security & Privacy_, click on _Open Anyway_:
+**Solution**: open _System Preferences_, go to _Security & Privacy_, click on _Open Anyway_:
 
 ![image](https://user-images.githubusercontent.com/23183656/204980538-2529b152-2319-4e9d-8a77-8154b86b92a7.png)
