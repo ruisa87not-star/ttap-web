@@ -20,3 +20,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Shared web / Electron application
+app/node_modules/
+app/coverage/
+app/out/
+app/dist-web/
+app/release/
+app/test-results/
+app/playwright-report/
+
