@@ -28,3 +28,9 @@
 .mobile-panels{display:none}
 @media(max-width:1100px){.planner-grid{grid-template-columns:210px minmax(0,1fr) 218px;gap:12px}.courses-panel,.conditions-panel{padding:16px}.schedule-toolbar{padding:16px;flex-wrap:wrap}.planner-title p{max-width:450px}}
 @media(max-width:950px){.mobile-panels{display:flex;gap:8px;margin-bottom:18px}.mobile-panels button{flex:1;font-size:13px}.mobile-panels button[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:white}.planner-grid{display:block}.planner-grid>aside,.planner-grid>.schedule-panel{display:none}.panel-courses>.courses-panel,.panel-timetable>.schedule-panel,.panel-conditions>.conditions-panel{display:block}.course-list{max-height:none}.selection-count{display:none}.planner-title h1{font-size:32px}.planner-title{margin-bottom:22px}.schedule-toolbar{flex-wrap:nowrap}.course-card{padding:16px}.course-name{font-size:14px}.class-choices{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}.constraint-form{max-width:450px}.generate-box button{max-width:450px}}
+:root { color-scheme: light; }
+.project-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 32px;border-bottom:1px solid #dbe2ec;background:#fff}
+.dirty-label{color:#8a5b08}.saved-label{color:#53647c}.app-message,.import-back{margin:16px 32px}.import-back{display:flex;align-items:center;gap:16px}
+.project-dialog{max-width:560px;width:calc(100% - 40px);border:1px solid #dbe2ec;border-radius:14px;padding:28px;color:#172b49;box-shadow:0 20px 80px #172b4933}
+.project-dialog::backdrop{background:#172b4977}.project-dialog h2{margin-top:0}.project-dialog .actions{margin-top:24px;flex-wrap:wrap}
+@media(max-width:600px){.project-actions{padding:14px 16px;align-items:flex-start;flex-direction:column}.project-actions .actions{flex-wrap:wrap}}

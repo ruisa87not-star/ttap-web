@@ -151,7 +151,7 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
 
 **Interfaces:** `FilePort` 定義 `pickHtml(): Promise<FileOutcome<HtmlSource[]>>`、`openProject(): Promise<FileOutcome<{ name: string; text: string }>>`、`exportProject(project: Project): Promise<FileOutcome<ExportReceipt>>`；`browserFilePort: FilePort`。`getFilePort(): FilePort` 在沒有 preload 橋接時回傳 browser 實作；Task 6 才接桌面實作。App 的 dirty 比較最後一次已儲存或使用者已確認保留下載的 Project 快照，不包含候選切換；儲存開始後的新變更不能被完成回覆清除。
 
-- [ ] **Step 1:** 測試 File API 開啟與 Blob 下載的 JSON round-trip，`status: cancelled` 不替換專案、不清 dirty，錯誤／未知版本／未知參照保留現有 Project。測試產生下載回傳 `{ kind: 'downloaded', name }`，URL.revokeObjectURL 在瀏覽器取得下載後執行。UI 測試 dirty 時開啟／匯入提供 Export / Discard / Cancel，輸出失敗或取消會中止替換；瀏覽器發出下載後仍需使用者明確確認已保留檔案才能清 dirty／繼續替換。測試輸出中的新修改仍 dirty，beforeunload 只在 dirty 時註冊。
+- [x] **Step 1:** 測試 File API 開啟與 Blob 下載的 JSON round-trip，`status: cancelled` 不替換專案、不清 dirty，錯誤／未知版本／未知參照保留現有 Project。測試產生下載回傳 `{ kind: 'downloaded', name }`，URL.revokeObjectURL 在瀏覽器取得下載後執行。UI 測試 dirty 時開啟／匯入提供 Export / Discard / Cancel，輸出失敗或取消會中止替換；瀏覽器發出下載後仍需使用者明確確認已保留檔案才能清 dirty／繼續替換。測試輸出中的新修改仍 dirty，beforeunload 只在 dirty 時註冊。
   在測試中控制 Blob URL 與 anchor 點擊，驗證回報的能力：
   ```ts
   it('reportsADownloadRatherThanADiskSave', async () => {
@@ -160,10 +160,10 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
     expect(result.status === 'ok' && result.value.kind).toBe('downloaded');
   });
   ```
-- [ ] **Step 2:** 執行 `npm --prefix app test -- tests/platform tests/planner/ProjectActions.test.tsx`，確認缺少檔案操作與保護流程而失敗。
-- [ ] **Step 3:** 實作 FilePort、共享 toolbar 與 ProjectActions；檔案選擇取消恢復 UI 可再次操作。開啟先 decodeProject，再確認替換。網頁只顯示 Exported，不宣稱磁碟寫入完成；下載手勢發出後的磁碟取消無法偵測，提供使用者確認已保留下載的操作，不能僅憑手勢自動替換專案。註冊及清理 beforeunload；瀏覽器無 preload 時完整運作。
-- [ ] **Step 4:** 執行本 Task、完整單元測試、typecheck、build:web。手動匯出再選取檔案，確認課程及條件一致且重新計算得等效課表。
-- [ ] **Step 5:** 提交 `feat: open and export portable timetable projects on the web`。
+- [x] **Step 2:** 執行 `npm --prefix app test -- tests/platform tests/planner/ProjectActions.test.tsx`，確認缺少檔案操作與保護流程而失敗。
+- [x] **Step 3:** 實作 FilePort、共享 toolbar 與 ProjectActions；檔案選擇取消恢復 UI 可再次操作。開啟先 decodeProject，再確認替換。網頁只顯示 Exported，不宣稱磁碟寫入完成；下載手勢發出後的磁碟取消無法偵測，提供使用者確認已保留下載的操作，不能僅憑手勢自動替換專案。註冊及清理 beforeunload；瀏覽器無 preload 時完整運作。
+- [x] **Step 4:** 執行本 Task、完整單元測試、typecheck、build:web。手動匯出再選取檔案，確認課程及條件一致且重新計算得等效課表。
+- [x] **Step 5:** 提交 `feat: open and export portable timetable projects on the web`。
 
 ## Task 6: Electron 原生檔案與 Windows 應用
 
