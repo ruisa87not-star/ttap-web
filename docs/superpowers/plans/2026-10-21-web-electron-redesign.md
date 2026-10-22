@@ -111,7 +111,7 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
 
 **Interfaces:** Consumes `SolveInput`, `MAX_SOLUTIONS`；Produces `meetingsClash(a: Meeting, b: Meeting): boolean`、`solveTimetables(input: SolveInput): SolveResult`。空 selection 回傳空 solutions 且 truncated 為 false；輸入先通過共用驗證。順序由科目、類型、穩定班別 ID 決定，重跑同一資料可重現。
 
-- [ ] **Step 1:** 在 `fixtures/solver.ts` 定義 `makeSolveInput(): SolveInput`，包含一科兩個 L 及一個 T，兩個 L 均不與 T 衝堂，斷言 solutions 有 2 筆且每筆 L/T 齊全。另測端點相接、不同週同時段、同週衝堂、多會議不可拆分、固定班別、封鎖時段、無解、同編號跨科、同班別自身會議衝堂。用 10 個獨立二選一分組證明回傳 500 筆且 truncated 為 true，不配置百萬筆結果。
+- [x] **Step 1:** 在 `fixtures/solver.ts` 定義 `makeSolveInput(): SolveInput`，包含一科兩個 L 及一個 T，兩個 L 均不與 T 衝堂，斷言 solutions 有 2 筆且每筆 L/T 齊全。另測端點相接、不同週同時段、同週衝堂、多會議不可拆分、固定班別、封鎖時段、無解、同編號跨科、同班別自身會議衝堂。用 10 個獨立二選一分組證明回傳 500 筆且 truncated 為 true，不配置百萬筆結果。
   ```ts
   it('requiresLectureAndTutorial', () => {
     const result = solveTimetables(makeSolveInput());
@@ -120,10 +120,10 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
     expect(result.truncated).toBe(false);
   });
   ```
-- [ ] **Step 2:** 執行 `npm --prefix app test -- tests/core`，確認因缺少核心而失敗。
-- [ ] **Step 3:** 移植 `src/ts/permutator/findTimetable.ts` 的分組、少選項優先及回溯搜尋流程；以科目／類型分組且同班別 meetings 整組選取。使用半開區間與週次交集保留規則，移除視覺化、UI、全域 TimePeriod 狀態與字串雜湊相依，達 500 筆即停止並回報上限。從上游 `HENG_2017_APR` 提取僅含課程的少量回歸資料，對照既有測試的 MPU3113=3、MPU3113+MPU3123=5、UKMM1043=29、FM2 考慮週次=420、ACP+BKA=0；不引入整份登入 HTML 或舊依賴。於 `UPSTREAM.md` 記錄來源 commit、移植路徑、規則及表現差異。
-- [ ] **Step 4:** 執行 core 測試、完整單元測試與 typecheck。確認核心無 window、document、React、Electron 匯入，全部對照案例通過後才聲稱規則相容。
-- [ ] **Step 5:** 提交 `feat: port timetable search into a shared pure core`。
+- [x] **Step 2:** 執行 `npm --prefix app test -- tests/core`，確認因缺少核心而失敗。
+- [x] **Step 3:** 移植 `src/ts/permutator/findTimetable.ts` 的分組、少選項優先及回溯搜尋流程；以科目／類型分組且同班別 meetings 整組選取。使用半開區間與週次交集保留規則，移除視覺化、UI、全域 TimePeriod 狀態與字串雜湊相依，達 500 筆即停止並回報上限。從上游 `HENG_2017_APR` 提取僅含課程的少量回歸資料，對照既有測試的 MPU3113=3、MPU3113+MPU3123=5、UKMM1043=29、FM2 考慮週次=420、ACP+BKA=0；不引入整份登入 HTML 或舊依賴。於 `UPSTREAM.md` 記錄來源 commit、移植路徑、規則及表現差異。
+- [x] **Step 4:** 執行 core 測試、完整單元測試與 typecheck。確認核心無 window、document、React、Electron 匯入，全部對照案例通過後才聲稱規則相容。
+- [x] **Step 5:** 提交 `feat: port timetable search into a shared pure core`。
 
 ## Task 4: 共用排課畫面與可取消運算
 
