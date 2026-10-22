@@ -8,6 +8,10 @@ The original LICENSE is retained at the repository root and included in desktop 
   class rows, class-mode columns and continuation rows ported to `parseUtarHtml.ts`.
   The port uses textContent, explicit diagnostics, bounded input, stable composite
   class identities and validation instead of browser-global IDs and silent drops.
+  `testData/student-2020-Sept.html` is read in place for an additional regression;
+  its td/Mode headings and row-spanned Remark structure are reproduced with
+  synthetic data in `tests/fixtures/student-td-mode.html`. Declared physical row
+  counts are validated before deduplicating equal meetings.
 - `src/ts/permutator/findTimetable.ts` and `partitionize.ts`: partition by
   course/type, sort by candidate count and backtrack with clash pruning, ported
   to `core/solveTimetables.ts`. UI visualization hooks and mutable global time

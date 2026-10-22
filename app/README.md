@@ -106,6 +106,7 @@ to avoid Firefox assembly loading failures observed in the shared Windows cache.
 Set `PLAYWRIGHT_BROWSERS_PATH` explicitly to use another location.
 
 The recorded verification result and remaining runtime limitations are in
-[VERIFICATION.md](VERIFICATION.md). Source attribution and deliberate rule changes
+[VERIFICATION.md](VERIFICATION.md), with independent findings and fixes in
+[REVIEW.md](REVIEW.md). Source attribution and deliberate rule changes
 are in [UPSTREAM.md](UPSTREAM.md). Original MIT notice: [LICENSE](LICENSE).
 Bundled third-party notices: [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).

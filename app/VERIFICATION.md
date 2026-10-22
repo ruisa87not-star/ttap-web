@@ -7,13 +7,13 @@ course-only archived upstream rows were used; no UTAR account was accessed.
 | Check | Result |
 | --- | --- |
 | Strict TypeScript | Passed |
-| Unit/component tests | 91 passed in 14 files |
+| Unit/component tests | 98 passed in 14 files |
 | Production web build | Passed; separate worker emitted |
 | Production Electron build | Passed; sandbox-compatible CommonJS preload |
 | Windows directory packaging | Passed; official installed Electron runtime |
-| Chromium production workflows | 5 passed |
-| Firefox production workflows | 5 passed |
-| Packaged Windows workflows | 3 passed |
+| Chromium production workflows | 6 passed |
+| Firefox production workflows | 6 passed |
+| Packaged Windows workflows | 4 passed |
 | Browser bundle boundary | No Electron IPC, Node imports or global require |
 | Source whitespace check | Passed |
 
@@ -43,4 +43,15 @@ application runtime, installer/signing/distribution on another Windows machine,
 or hosted deployment. The npm production advisory audit endpoint returned
 `socket hang up`; no claim of a clean dependency security audit is made.
 
-Independent review and any fixes are recorded below when complete.
+Independent whole-branch review identified four correctness issues. All four
+were reproduced by failing regressions and fixed in one pass; the 98-test suite
+and strict types pass. See [REVIEW.md](REVIEW.md) for the findings and evidence.
+The initial usage-limit interruption was resolved before the review resumed.
+After the fixes, both production builds, Windows packaging and all **16 runtime
+tests** passed. The archived td/Mode and spanned-Remark fixture was exercised in
+Chromium, Firefox and the native HTML picker, preserving both lecture meetings.
+
+GitHub authorization has been verified through the configured Git credential
+helper. Credentials are kept in memory for the authorized GitHub request and
+are never printed or written to files. Fork creation/push follow the remaining
+production runtime gate.

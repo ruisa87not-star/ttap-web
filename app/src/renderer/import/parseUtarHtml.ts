@@ -52,10 +52,22 @@ export function parseUtarHtml(sources: HtmlSource[]): ImportResult {
     if (!table) { issue('No UTAR course table found. Save the master schedule page, rather than the login page.'); continue; }
     const local = new Map<string, ClassOption>(); let course: Course | undefined; let previous: ClassOption | undefined;
     let hasMode = false;
+    let expectedRows: number | undefined; let physicalRows = 0; let remarkSpan = 1; let firstRow = 0;
+    function finishClass() {
+      if (previous && expectedRows !== undefined && physicalRows !== expectedRows) {
+        invalid.add(previous.id);
+        issue(`${previous.courseCode}: incomplete class group; expected ${expectedRows} meeting rows but received ${physicalRows}. The entire class was excluded.`,firstRow,previous.courseCode);
+      }
+    }
     Array.from(table.rows).forEach((row,index)=>{
       const cells = Array.from(row.cells).map(c=>(c.textContent ?? '').replace(/\s+/g,' ').trim());
       if (!cells.length) return;
-      if (row.querySelector('th')) { hasMode = cells.some(c=>/class\s*mode/i.test(c)); return; }
+      const continuation = /^subRow/i.test(row.id);
+      if (!continuation) { finishClass(); previous=undefined; expectedRows=undefined; physicalRows=0; remarkSpan=1; }
+      const labels=cells.map(c=>c.toLowerCase().replace(/[^a-z]/g,''));
+      const columnHeading=labels[0]==='no' && labels[1]==='type' && labels[2]==='group' && labels.includes('day') && labels.includes('time');
+      if (columnHeading) { hasMode=labels[3]==='mode' || labels[3]==='classmode'; return; }
+      if (row.querySelector('th')) { issue('Unrecognized course table headings.',index+1); return; }
       const header = cells[0].match(/^(.+?)\s+-\s+(.+?)\s*\[(\d+(?:\.\d+)?)\]/);
       if (header && (cells.length === 1 || cells.length === 4)) {
         const [,code,name,credit] = header; const existing = courses.get(code);
@@ -66,7 +78,6 @@ export function parseUtarHtml(sources: HtmlSource[]): ImportResult {
         courses.set(code,course); if (!observed.has(code)) observed.set(code,new Set()); previous = undefined; return;
       }
       if (!course) { issue('A class row has no recognizable course heading.',index+1); return; }
-      const continuation = /^subRow/i.test(row.id);
       if (continuation && !previous) { issue(`${course.code}: orphan continuation row; no preceding class.`,index+1,course.code); return; }
       if (!continuation) {
         const type = cells[1]?.toUpperCase();
@@ -75,15 +86,29 @@ export function parseUtarHtml(sources: HtmlSource[]): ImportResult {
         previous = {id:JSON.stringify([course.code,type,number,group]),courseCode:course.code,type,number,group,meetings:[],
           ...(hasMode ? {classMode:cells[3]} : {}), classSize:cells[hasMode ? 4 : 3], remark:cells[hasMode ? 10 : 9] ?? ''};
         if (!local.has(previous.id)) local.set(previous.id,previous); else previous = local.get(previous.id)!;
+        firstRow=index+1; physicalRows=1;
+        const offset=hasMode?5:4;const remarkIndex=hasMode?10:9;
+        const spans=Array.from(row.cells).filter((cell,i)=>(i<offset || i===remarkIndex) && cell.hasAttribute('rowspan')).map(cell=>Number(cell.getAttribute('rowspan')));
+        if (spans.length) {
+          if (spans.some(span=>!Number.isInteger(span) || span<1 || span>table.rows.length || span!==spans[0])) {
+            invalid.add(previous.id);issue(`${course.code}: invalid or inconsistent class row spans; the entire class was excluded.`,index+1,course.code);
+          } else expectedRows=spans[0];
+        }
+        remarkSpan=row.cells[remarkIndex]?.rowSpan??1;
+      } else {
+        // Count source rows, even when equal meetings will be deduplicated.
+        physicalRows++;
       }
       const option = previous!;
       try {
         if (course.name.toLowerCase() === 'industrial training') throw new Error('Industrial Training does not participate in automatic planning.');
-        if (cells.length !== (continuation ? 6 : hasMode ? 11 : 10)) throw new Error('Incomplete class row; the entire class was excluded.');
+        const expectedCells=continuation?(physicalRows<=remarkSpan?5:6):hasMode?11:10;
+        if (cells.length !== expectedCells) throw new Error('Incomplete class row; the entire class was excluded.');
         const next = meeting(cells, continuation ? 0 : hasMode ? 5 : 4);
         if (!option.meetings.some(m=>JSON.stringify(m)===JSON.stringify(next))) option.meetings.push(next);
       } catch (e) { invalid.add(option.id); issue(`${course.code}: ${(e as Error).message}`,index+1,course.code); }
     });
+    finishClass();
     for (const [id,option] of local) {
       const old = options.get(id);
       if (!old) { options.set(id,option); continue; }

@@ -6,8 +6,31 @@ import { MAX_IMPORT_BYTES } from '../../src/shared/project';
 const v2 = readFileSync('tests/fixtures/student-v2.html', 'utf8');
 const v1 = readFileSync('tests/fixtures/student-v1.html', 'utf8');
 const page = readFileSync('tests/fixtures/paginated.html', 'utf8');
+const tdMode = readFileSync('tests/fixtures/student-td-mode.html', 'utf8');
 const parse = (text: string) => parseUtarHtml([{ name: 'test.html', text }]);
 describe('UTAR course pages', () => {
+  it('recognizes archived td/Mode headings and the five-cell continuation under a spanned Remark', () => {
+    const r=parse(tdMode);expect(r.issues).toEqual([]);expect(r.courses).toHaveLength(1);
+    expect(r.courses[0].classes).toHaveLength(2);expect(r.courses[0].classes[0]).toMatchObject({classMode:'OTL',classSize:'40',remark:'Bring a notebook'});
+    expect(r.courses[0].classes[0].meetings).toHaveLength(2);expect(r.courses[0].classes[0].meetings[1].room).toBe('KB102');
+  });
+  it('imports the retained upstream 2020 student page with complete multi-row lectures', () => {
+    const r=parse(readFileSync('../testData/student-2020-Sept.html','utf8'));
+    const course=r.courses.find(c=>c.code==='MPU3113');expect(course).toBeDefined();expect(course!.classes).toHaveLength(2);
+    expect(course!.classes.every(c=>c.classMode==='OTL' && c.meetings.length===2)).toBe(true);
+  });
+  it('excludes a declared multi-row class whose continuation is missing at the next class', () => {
+    const html=v2.replace('<tr><td>1</td>','<tr><td rowspan="2">1</td>').replace(/<tr id="subRow1">.*?<\/tr>/,'');
+    const r=parse(html);expect(r.courses[0].classes.some(c=>c.number==='1')).toBe(false);expect(r.issues.some(i=>/incomplete/i.test(i.message))).toBe(true);
+  });
+  it('excludes a declared multi-row class truncated at the end of the table', () => {
+    const r=parse(page.replace('<tr><td>1</td>','<tr><td rowspan="2">1</td>'));
+    expect(r.courses).toEqual([]);expect(r.issues.some(i=>/incomplete/i.test(i.message))).toBe(true);
+  });
+  it('counts physical continuation rows before deduplicating equal meetings', () => {
+    const html=v2.replace('<tr><td>1</td>','<tr><td rowspan="2">1</td>').replace('<td>Thu</td><td>10:00 AM - 11:00 AM</td><td>1</td><td>1-3</td><td>KB102</td>','<td>Mon</td><td>09:00 AM - 10:00 AM</td><td>1</td><td>1-3</td><td>KB101</td>');
+    const r=parse(html);expect(r.issues).toEqual([]);expect(r.courses[0].classes.find(c=>c.number==='1')?.meetings).toHaveLength(1);
+  });
   it('preserves both meetings, names and class metadata in v2', () => {
     const r = parse(v2); expect(r.courses).toHaveLength(2); expect(r.issues).toEqual([]);
     const c = r.courses[0]; expect(c.code).toBe('TEST1013'); expect(c.name).toBe('COMPUTING & SOCIETY');

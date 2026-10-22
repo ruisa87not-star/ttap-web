@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import type {Project,Selection} from '../../shared/model';
-const names:Record<string,string>={L:'Lecture',T:'Tutorial',P:'Practical'};
-export const typeName=(type:string)=>names[type]??type;
+const names=new Map([['L','Lecture'],['T','Tutorial'],['P','Practical']]);
+export const typeName=(type:string)=>names.get(type)??type;
 export function CourseList({project,onChange}:{project:Project;onChange:(s:Selection)=>void}){
   const[search,setSearch]=useState('');const selected=new Set(project.selection.courseCodes);
   function toggle(code:string){

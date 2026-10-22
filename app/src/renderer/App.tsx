@@ -14,6 +14,7 @@ export function App(){
   const [download,setDownload]=useState<{snapshot:string;name:string;continueAfter:boolean}|null>(null);
   const current=useRef(project);current.current=project;
   const snapshot=project?JSON.stringify(project):'';const dirty=!!project&&snapshot!==baseline;
+  const currentDirty=useRef(dirty);currentDirty.current=dirty;
   useEffect(()=>{
     if(window.ttap){window.ttap.setDirty(dirty);return;}
     if(!dirty)return;
@@ -27,7 +28,7 @@ export function App(){
   }),[dirty,busy]);
   function replace(next:Project,clean:boolean){
     const run=()=>{setProject(next);setBaseline(clean?JSON.stringify(next):'');setImporting(false);setPending(null);setError('');setNotice('');};
-    if(dirty)setPending({run});else run();
+    if(currentDirty.current)setPending({run});else run();
   }
   async function open(){
     setBusy(true);setError('');

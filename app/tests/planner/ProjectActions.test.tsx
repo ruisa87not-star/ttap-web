@@ -3,10 +3,25 @@ import userEvent from '@testing-library/user-event';
 import {beforeEach,expect,it,vi} from 'vitest';
 import {App} from '../../src/renderer/App';
 import {makeProject} from '../fixtures/projects';
+import {validateProject} from '../../src/shared/project';
 const port=vi.hoisted(()=>({pickHtml:vi.fn(),openProject:vi.fn(),exportProject:vi.fn()}));
 vi.mock('../../src/platform/files',()=>({getFilePort:()=>port}));
 beforeEach(()=>{vi.clearAllMocks();port.openProject.mockResolvedValue({status:'cancelled'});port.exportProject.mockResolvedValue({status:'cancelled'});});
 async function demo(){render(<App/>);await userEvent.click(screen.getByRole('button',{name:'Try demo'}));await userEvent.click(await screen.findByRole('button',{name:'Use these courses'}));}
+it('prompts for edits made after a clean project starts opening another file',async()=>{
+  await demo();port.exportProject.mockResolvedValue({status:'ok',value:{kind:'saved',name:'current.ttap.json'}});
+  await userEvent.click(screen.getByRole('button',{name:'Export project'}));expect(screen.getByText('Project is up to date')).toBeInTheDocument();
+  let finish!:(value:unknown)=>void;port.openProject.mockImplementation(()=>new Promise(resolve=>finish=resolve));
+  await userEvent.click(screen.getByRole('button',{name:'Open project'}));await userEvent.click(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'}));
+  await act(async()=>finish({status:'ok',value:{name:'other.ttap.json',text:JSON.stringify(makeProject())}}));
+  const dialog=await screen.findByRole('dialog',{name:'Keep your changes?'});expect(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'})).toBeChecked();
+  await userEvent.click(within(dialog).getByRole('button',{name:'Cancel'}));expect(screen.getByText('Unsaved changes')).toBeInTheDocument();expect(screen.getByRole('checkbox',{name:'TEST2023 DATA STRUCTURES'})).toBeInTheDocument();
+});
+it('renders a validated external class type that is also an Object prototype property',async()=>{
+  const project=makeProject();const option=project.courses[0].classes[0];option.type='__proto__';option.id=JSON.stringify([option.courseCode,option.type,option.number,option.group]);
+  expect(validateProject(project).ok).toBe(true);port.openProject.mockResolvedValue({status:'ok',value:{name:'unusual.json',text:JSON.stringify(project)}});
+  render(<App/>);await userEvent.click(screen.getByRole('button',{name:'Open project'}));expect(await screen.findByLabelText('__proto__ for TEST1013')).toBeInTheDocument();
+});
 it('keeps the current project on invalid input and cancelled open',async()=>{
   await demo();await userEvent.click(screen.getByRole('button',{name:'Open project'}));expect(screen.getByRole('checkbox',{name:'TEST2023 DATA STRUCTURES'})).toBeInTheDocument();
   port.openProject.mockResolvedValue({status:'ok',value:{name:'broken.json',text:'{'}});await userEvent.click(screen.getByRole('button',{name:'Open project'}));expect(await screen.findByRole('alert')).toHaveTextContent('valid JSON');expect(screen.getByRole('checkbox',{name:'TEST2023 DATA STRUCTURES'})).toBeInTheDocument();

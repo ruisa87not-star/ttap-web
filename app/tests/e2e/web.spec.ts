@@ -3,6 +3,12 @@ import {readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {demo,configure,generate,downloadProject,openWebProject,readProject,expectCandidate,difficultProject} from './helpers';
 
+test('imports the archived td/Mode and spanned-Remark layout with both meetings',async({page})=>{
+  await page.goto('/');await page.getByRole('button',{name:'Paste HTML'}).click();await page.getByLabel('UTAR course HTML').fill(await readFile('tests/fixtures/student-td-mode.html','utf8'));
+  await page.getByRole('button',{name:'Preview import'}).click();await expect(page.getByText('1 courses',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Use these courses'}).click();await page.getByRole('checkbox',{name:/^TEST1013 /}).check();await page.getByRole('button',{name:'Generate',exact:true}).click();
+  await expect(page.getByText('Option 1 of 1')).toBeVisible();const timetable=page.getByRole('region',{name:'Weekly timetable'});await expect(timetable.getByRole('button',{name:/Lecture group 1, 09:00/})).toBeVisible();await expect(timetable.getByRole('button',{name:/Lecture group 1, 10:00/})).toBeVisible();
+});
+
 test('demo workflow exports and reopens courses, fixed classes, blocked time and equivalent candidates',async({page},info)=>{
   await page.goto('/');await demo(page);await configure(page);await generate(page);
   await page.getByRole('button',{name:'Next timetable'}).click();await expect(page.getByText('Option 2 of 2')).toBeVisible();await page.getByLabel('Teaching week').selectOption('2');
