@@ -171,7 +171,7 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
 
 **Interfaces:** `window.ttap?: DesktopBridge`，bridge 包含 FilePort 三個操作，以及 `setDirty(dirty: boolean): void`、`onCloseRequested(handler: () => void): () => void`、`confirmClose(): Promise<void>`。主程序不接收 renderer 提供的任意路徑；所有實際路徑來自原生對話框。renderer 端 Electron adapter 實作 FilePort；main 端共用 validateProject。`main/files.ts` 匯出僅供主程序內部的 `readHtmlPaths(paths: string[]): Promise<HtmlSource[]>`、`readProjectFile(path: string): Promise<Project>`、`writeProjectAtomically(path: string, project: Project): Promise<void>`，讀寫失敗拋出錯誤，由 IPC 轉為 FileOutcome。
 
-- [ ] **Step 1:** 以暫存目錄測試讀寫 round-trip、對話框取消、10 MiB 邊界、覆寫既有檔案、寫入與 rename 失敗保留原檔並清理暫存檔。IPC 測試拒絕非主視窗／子 frame、未知來源、非 Project payload；native save 取消不清 dirty。關閉流程測試：有 dirty 時不可直接關閉，只有成功儲存或明確捨棄後才 confirmClose；乾淨視窗直接關閉。
+- [x] **Step 1:** 以暫存目錄測試讀寫 round-trip、對話框取消、10 MiB 邊界、覆寫既有檔案、寫入與 rename 失敗保留原檔並清理暫存檔。IPC 測試拒絕非主視窗／子 frame、未知來源、非 Project payload；native save 取消不清 dirty。關閉流程測試：有 dirty 時不可直接關閉，只有成功儲存或明確捨棄後才 confirmClose；乾淨視窗直接關閉。
   在 beforeEach 使用 mkdtemp 建立 `tempDir`，afterEach 清理該已驗證的暫存目錄：
   ```ts
   it('roundTripsTheNativeProjectFile', async () => {
@@ -181,10 +181,10 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
     expect(await readProjectFile(path)).toEqual(project);
   });
   ```
-- [ ] **Step 2:** 執行 `npm --prefix app test -- tests/main tests/platform/electron.test.ts`，確認尚無 native 行為而失敗。
-- [ ] **Step 3:** 實作 main / preload、FilePort adapter 與關閉橋接；使用 contextBridge、來源限定 IPC、sandbox / contextIsolation、停用 nodeIntegration，webSecurity 保持開啟。正式版以受控本機 app protocol 載入封裝資源，拒絕越界路徑、任意導覽及新視窗。preload 以 sandbox 可用的 CommonJS bundle 產出，不載入未封裝的本機模組。新增 `dev:desktop`、`build:desktop`、`package:win`（Windows directory target）scripts；只封裝 app/out、必要執行依賴和授權聲明。
-- [ ] **Step 4:** 執行本 Task、完整單元測試、typecheck、build:web、`npm --prefix app run build:desktop`、`npm --prefix app run package:win`。確認獨立 Windows 可執行目錄產生；實際啟動檢查相同介面與原生存取。
-- [ ] **Step 5:** 提交 `feat: run the shared planner as a Windows Electron app`。
+- [x] **Step 2:** 執行 `npm --prefix app test -- tests/main tests/platform/electron.test.ts`，確認尚無 native 行為而失敗。
+- [x] **Step 3:** 實作 main / preload、FilePort adapter 與關閉橋接；使用 contextBridge、來源限定 IPC、sandbox / contextIsolation、停用 nodeIntegration，webSecurity 保持開啟。正式版以受控本機 app protocol 載入封裝資源，拒絕越界路徑、任意導覽及新視窗。preload 以 sandbox 可用的 CommonJS bundle 產出，不載入未封裝的本機模組。新增 `dev:desktop`、`build:desktop`、`package:win`（Windows directory target）scripts；只封裝 app/out、必要執行依賴和授權聲明。
+- [x] **Step 4:** 執行本 Task、完整單元測試、typecheck、build:web、`npm --prefix app run build:desktop`、`npm --prefix app run package:win`。確認獨立 Windows 可執行目錄產生；實際啟動檢查相同介面與原生存取。
+- [x] **Step 5:** 提交 `feat: run the shared planner as a Windows Electron app`。
 
 ## Task 7: 兩個正式版本的操作驗證與使用說明
 

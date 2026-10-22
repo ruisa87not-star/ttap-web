@@ -1,0 +1,15 @@
+appId: io.ttap.planner
+productName: TTAP Planner
+asar: true
+electronDist: node_modules/electron/dist
+directories:
+  output: release
+files:
+  - out/**
+  - package.json
+  - LICENSE
+  - UPSTREAM.md
+  - '!node_modules/**'
+win:
+  target: dir
+  executableName: TTAP-Planner

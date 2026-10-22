@@ -15,10 +15,16 @@ export function App(){
   const current=useRef(project);current.current=project;
   const snapshot=project?JSON.stringify(project):'';const dirty=!!project&&snapshot!==baseline;
   useEffect(()=>{
+    if(window.ttap){window.ttap.setDirty(dirty);return;}
     if(!dirty)return;
     const warn=(e:BeforeUnloadEvent)=>{e.preventDefault();e.returnValue='';};
     window.addEventListener('beforeunload',warn);return ()=>window.removeEventListener('beforeunload',warn);
   },[dirty]);
+  useEffect(()=>window.ttap?.onCloseRequested(()=>{
+    if(busy)return;
+    const run=()=>{setPending(null);void window.ttap?.confirmClose();};
+    if(dirty)setPending({run});else run();
+  }),[dirty,busy]);
   function replace(next:Project,clean:boolean){
     const run=()=>{setProject(next);setBaseline(clean?JSON.stringify(next):'');setImporting(false);setPending(null);setError('');setNotice('');};
     if(dirty)setPending({run});else run();

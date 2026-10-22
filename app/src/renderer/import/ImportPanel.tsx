@@ -1,13 +1,13 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import type { HtmlSource, ImportResult } from '../../shared/model';
 import { readHtmlFiles } from '../../platform/browserFiles';
+import {getFilePort} from '../../platform/files';
 import { parseUtarHtml } from './parseUtarHtml';
 import demo from './demo.html?raw';
 
 export function ImportPanel({onConfirm}: { onConfirm: (result: ImportResult) => void }) {
   const [pasting,setPasting]=useState(false); const [html,setHtml]=useState('');
   const [preview,setPreview]=useState<ImportResult|null>(null); const [busy,setBusy]=useState(false); const [error,setError]=useState('');
-  const input=useRef<HTMLInputElement>(null);
   async function previewSources(sources: HtmlSource[]) {
     setBusy(true); setError('');
     // Let the importing state paint before synchronous, bounded DOM parsing.
@@ -20,6 +20,11 @@ export function ImportPanel({onConfirm}: { onConfirm: (result: ImportResult) => 
     if (result.status==='ok') await previewSources(result.value);
     if (result.status==='error') setError(result.message);
   }
+  async function pick(){
+    setError('');
+    try{const result=await getFilePort().pickHtml();if(result.status==='ok')await previewSources(result.value);else if(result.status==='error')setError(result.message);}
+    catch{setError('The schedule files could not be opened.');}
+  }
   return <section className="import-panel" aria-label="Import courses">
     <div className="import-heading"><div><h2>Bring your courses in.</h2><p>Save your UTAR master schedule as HTML, then add it here.</p></div><button className="quiet" onClick={()=>previewSources([{name:'Demo schedule',text:demo}])} disabled={busy}>Try demo</button></div>
     {!preview && <>
@@ -27,8 +32,7 @@ export function ImportPanel({onConfirm}: { onConfirm: (result: ImportResult) => 
       {pasting ? <label className="paste-label">UTAR course HTML<textarea value={html} onChange={e=>setHtml(e.target.value)} placeholder="Paste the HTML from your UTAR master schedule." spellCheck={false}/></label> :
         <div className="dropzone" onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();if(!busy) files(Array.from(e.dataTransfer.files));}}>
           <span className="file-symbol" aria-hidden="true">＋</span><h3>Drop your schedule pages here</h3><p>You can add several HTML pages together.</p>
-          <button className="primary" onClick={()=>input.current?.click()} disabled={busy}>Choose HTML files</button>
-          <input ref={input} type="file" accept=".html,.htm" multiple aria-label="Schedule HTML files" className="visually-hidden" onChange={e=>{files(Array.from(e.target.files??[]));e.target.value='';}}/>
+          <button className="primary" onClick={pick} disabled={busy}>Choose HTML files</button>
           <small>.html or .htm · up to 10 MiB in total</small>
         </div>}
       <div className="import-footer"><span>Your course data stays on this device.</span><button onClick={()=>previewSources([{name:'Pasted HTML',text:html}])} disabled={busy||!html.trim()}>Preview import</button></div>
