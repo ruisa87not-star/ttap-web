@@ -2,7 +2,7 @@ import {useState} from 'react';
 
 const steps=[
   {title:'Get your course data.',body:null},
-  {title:'Choose your courses and free time.',body:<><p>Select courses in the sidebar. Leave each lecture, tutorial or practical on <strong>Any group</strong>, or choose a specific group.</p><p>Use <strong>Hide courses</strong> to give the timetable more room. Add your unavailable times under <strong>Conditions</strong>. On smaller screens, use the three panel buttons.</p></>},
+  {title:'Choose your courses and free time.',body:<><p>Select courses in the sidebar. Courses with no compatible group are disabled and explain the clash. Use the right arrow on a selected course to choose its lecture, tutorial or practical group.</p><p>Use the sidebar button beside <strong>Courses</strong> to give the timetable more room. Add your unavailable times under <strong>Conditions</strong>. On smaller screens, use the three panel buttons.</p></>},
   {title:'Compare your options, then save.',body:<><p>Clashes are checked as soon as you select a course or change a group. Browse the compatible timetable options. Select a class to see all its meetings and rooms.</p><p>Use <strong>Export image</strong> to save your timetable, chosen groups and registration instructions in one PNG. Follow that image to complete your actual course registration on the UTAR website.</p></>},
 ];
 

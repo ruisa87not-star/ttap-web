@@ -6,6 +6,10 @@ const compare=(a:string,b:string)=>a<b?-1:a>b?1:0;
 // The upstream FindTimetable search: partition by course/type, try the smallest
 // partition first, and prune conflicting paths. See UPSTREAM.md for the port.
 export function solveTimetables(input:SolveInput):SolveResult {
+  return searchTimetables(input,false);
+}
+export function hasTimetable(input:SolveInput):boolean{return searchTimetables(input,true).solutions.length>0;}
+function searchTimetables(input:SolveInput,firstOnly:boolean):SolveResult {
   const checked=validateProject({schemaVersion:1,sources:[],courses:input.courses,selection:input.selection});
   if(!checked.ok) throw new Error(checked.errors.join('\n'));
   const {courses,selection}=checked.value; const result:SolveResult={solutions:[],truncated:false};
@@ -27,7 +31,7 @@ export function solveTimetables(input:SolveInput):SolveResult {
     if(depth===groups.length) {
       // Only a discovered 501st result proves there are more than 500.
       if(result.solutions.length===MAX_SOLUTIONS){result.truncated=true;return true;}
-      result.solutions.push({classIds:chosen.map(c=>c.id).sort(compare)}); return false;
+      result.solutions.push({classIds:chosen.map(c=>c.id).sort(compare)}); return firstOnly;
     }
     for(const option of groups[depth]) {
       if(option.meetings.some(m=>occupied.some(n=>meetingsClash(m,n)))) continue;

@@ -2,7 +2,6 @@
 
 A redesigned UTAR timetable planner. The web app and Windows Electron app share
 the same interface, HTML importer, solver and PNG registration-guide export.
-Existing version-1 `.ttap.json` files can still be opened for compatibility.
 The original application remains in the repository root; install the new app
 independently, without running the root package installation.
 
@@ -12,8 +11,12 @@ in the [GitHub fork](https://github.com/ruisa87not-star/ttap-web).
 ![Packaged Windows timetable planner](docs/planner.png)
 
 Selecting courses or changing a group checks clashes and updates timetable options
-automatically. The status stays visible from every panel, with **Generate** for a
-manual retry and **Cancel calculation** for a long search. On smaller screens,
+automatically. Impossible prospective courses are disabled, with a clash
+explanation on the card. Selected courses stay removable. Use the right arrow
+on a selected card to open Lecture/Tutorial/Practical choices beside it.
+**Export image** sits in the planner header; there is no Generate or project toolbar.
+**Cancel calculation** stops a long search; Retry check appears only if a check
+fails or is paused. On smaller screens,
 switch between **Courses**, **Timetable** and **Conditions**.
 Course names use 14px text, with 12px course codes and 11px metadata in the calendar.
 The calendar has **Mon–Sun rows down the left and a horizontal 08:00–18:00 time
@@ -30,7 +33,7 @@ the display's work area.
 
 On Windows, double-click **[Start-TTAP.cmd](../Start-TTAP.cmd)** in the repository
 root to open the packaged desktop app. The header and window title identify this
-release as **Planner 0.3.0**. The launcher checks the package against source and
+release as **Planner 0.4.0**. The launcher checks the package against source and
 build-input modification times. If it is missing or older, it rebuilds before
 opening, using the installed Node.js and project dependencies. Build failures
 stay visible and do not fall back to the older package. A current package can
@@ -99,18 +102,21 @@ to import, or reopen it from the top-right **Tutorial** button at any time.
    courses**. Invalid or incomplete classes are excluded; a course with no valid
    choice for a required class type is excluded too.
 3. Select courses, optionally fix a lecture/tutorial/practical group, and add
-   unavailable times. These times apply every teaching week. **Hide courses**
-   expands the desktop timetable; **Show courses** restores the sidebar without
-   changing your choices. Narrow layouts use the three panel buttons.
+   unavailable times. These times apply every teaching week. A sidebar icon beside
+   **Courses** collapses the desktop course panel; the icon at its left edge
+   restores it. Your choices remain intact. Narrow layouts use the three panel
+   buttons. Selected cards have a [right arrow for choosing groups](docs/course-groups.png). The flyout
+   stays within the screen and scrolls internally for long course names.
    **Set time constraint** opens a half-hour grid showing availability across the
    generated options. Toggle cells, review how many shown options remain, apply,
    and the app automatically searches again. Constraints apply across all teaching
    weeks; the preview describes the currently generated options, including when
    the solver is capped.
 4. Browse the compatible timetable options. Clashes are checked immediately after
-   every course, group or constraint edit; if no combination fits, a visible alert
-   lists the selected courses and asks you to change a group, course or unavailable
-   time. Old results are cleared while checking. **Cancel calculation** stops the
+   every course, group or constraint edit. An unselected course is disabled only
+   if no group combination fits your selected courses and unavailable time.
+   A message on that card explains the clash. If a later group or constraint
+   edit makes the selected plan impossible, the alert asks you to adjust it. Old results are cleared while checking. **Cancel calculation** stops the
    Worker immediately. **Show summary** displays selected courses, groups/rooms
    and total credits (Unknown if any selected course omits credits).
    All class meetings are displayed together, with separate lanes for meetings
@@ -143,8 +149,14 @@ third-party-cookie policies may prevent browser login; its registration screen
 provides a direct-page fallback and saved HTML import. Desktop embedding does
 not depend on iframe permission. The desktop-only login presentation does not
 recreate the form or read its field values; normal browser cross-origin rules
-prevent applying that presentation inside the web iframe. The live compact
-desktop login page loaded successfully;
+prevent applying that presentation inside the web iframe. Desktop login errors
+are shown as bounded plain text above the form, without
+reading input values. A failed network request reports its error code; an HTTP
+failure reports its status and offers Reload. Nonfatal login messages leave the
+form visible for correction. Web embedding keeps UTAR errors inside the official
+form; browser cross-origin rules prevent extracting those messages into TTAP.
+A [synthetic error capture](docs/login-error.png) shows the correctable-login flow.
+The live compact desktop login page loaded successfully;
 authenticated workflows still require validation with your account.
 
 An actual capture of the unauthenticated embedded UTAR content is in
@@ -152,15 +164,12 @@ An actual capture of the unauthenticated embedded UTAR content is in
 
 ## Limits and compatibility
 
-- HTML imports and project files are limited to **10 MiB**, measured as UTF-8 bytes;
+- HTML imports are limited to **10 MiB**, measured as UTF-8 bytes;
   multiple HTML files share that total limit.
 - The solver retains at most **500** candidates. It reports truncation only after
   finding a 501st; the displayed count is then a retained count, not a full total.
 - Meetings clash only when day, time and teaching weeks overlap. Adjacent times
   do not clash. Every class's meetings are selected together.
-- Projects contain input data and conditions, not generated candidates or the
-  currently viewed candidate. Legacy schema version 1 can still be opened. New
-  exports use PNG; images cannot be reopened as editable projects.
 - Historical UTAR student table formats (with/without Class Mode) and archived
   solver examples are covered. **A current real UTAR export has not been supplied
   or verified.** Unrecognized layouts produce import notes. Do not mix terms:

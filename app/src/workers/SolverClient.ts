@@ -3,6 +3,10 @@ export class SolverClient {
   private nextId=0;
   private pending?:{id:number;worker:Worker;reject:(reason:unknown)=>void};
   solve(input:SolveInput):Promise<SolveResult>{
+    return this.request<SolveResult>(input,'solve');
+  }
+  availability(input:SolveInput):Promise<Record<string,boolean>>{return this.request(input,'availability');}
+  private request<T>(input:SolveInput,operation:'solve'|'availability'):Promise<T>{
     this.cancel(); const id=++this.nextId;
     return new Promise((resolve,reject)=>{
       // https://vite.dev/guide/features.html#web-workers
@@ -14,8 +18,8 @@ export class SolverClient {
         finish();
         if(typeof event.data.error==='string')reject(new Error(event.data.error));else resolve(event.data.result);
       };
-      worker.onerror=()=>{if(this.pending?.id!==id)return;finish();reject(new Error('The timetable search could not finish. Try generating again.'));};
-      worker.postMessage({requestId:id,input});
+      worker.onerror=()=>{if(this.pending?.id!==id)return;finish();reject(new Error('The timetable check could not finish. Change a course or try Retry check.'));};
+      worker.postMessage({requestId:id,input,operation});
     });
   }
   cancel():void{

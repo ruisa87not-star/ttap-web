@@ -18,3 +18,14 @@ it('cancels pending capture while a parent dialog suspends registration',async()
   await userEvent.click(screen.getByRole('button',{name:'Preview courses from this page'}));view.rerender(<RegistrationScreen onSource={onSource} suspended/>);
   await act(async()=>capture.finish());expect(onSource).not.toHaveBeenCalled();view.rerender(<RegistrationScreen onSource={onSource} suspended={false}/>);expect(screen.getByRole('button',{name:'Preview courses from this page'})).toBeEnabled();
 });
+it('shows UTAR login errors without hiding the form or calling a credential API',async()=>{
+  deferred();vi.mocked(window.ttap!.getRegistrationStatus).mockResolvedValue({loading:false,error:'',loginError:'Invalid verification code. Please try again.'});
+  render(<RegistrationScreen onSource={vi.fn()} suspended={false}/>);
+  expect(await screen.findByRole('alert')).toHaveTextContent('Invalid verification code. Please try again.');
+  expect(screen.queryByText('UTAR is unavailable')).toBeNull();
+});
+it('shows the actual connection problem prominently with a retry action',async()=>{
+  deferred();vi.mocked(window.ttap!.getRegistrationStatus).mockResolvedValue({loading:false,error:'UTAR returned HTTP 503 Service Unavailable.'});
+  render(<RegistrationScreen onSource={vi.fn()} suspended={false}/>);
+  expect(await screen.findByRole('alert')).toHaveTextContent('HTTP 503');expect(screen.getByRole('button',{name:'Reload'})).toBeEnabled();
+});

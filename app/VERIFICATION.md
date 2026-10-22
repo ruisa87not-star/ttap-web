@@ -293,3 +293,48 @@ The root launcher freshness check reports Current for the new package.
 using synthetic data. No authenticated UTAR account flow was submitted or verified
 in this revision. No new dependencies were added. Existing user-owned root
 reference images and suggestion/ were untouched and excluded from the commit.
+
+
+## Guarded course selection and visible login errors — Planner 0.4.0
+
+Prospective course checks now search every permitted class-type combination
+before disabling a course. They use the same week-aware solver, with a first-
+solution existence path inside a separate cancellable Worker. The original
+500-option enumeration and truncation checks still pass. Card messages explain
+why unavailable courses cannot be selected; selected courses remain removable.
+Current-project guards prevent stale availability or timetable replies from
+becoming selectable or exportable.
+
+Selected cards expose a right arrow for group selection. The modal flyout appears
+beside the course, stays visible through responsive panel changes via a portal,
+and limits its height to the space beneath its actual top. Both resize hiding
+and long-label clipping were reproduced with failing browser tests and fixed.
+Courses-panel sidebar icons replace Hide/Show controls. Export image occupies
+the former Generate position; the Generate control and entire project toolbar
+are removed. Image download confirmation, save cancellation, dirty replacement,
+dirty close and edits during save remain verified. Runtime fixtures now enter
+through actual HTML import rather than removed project-opening controls.
+
+Native login presentation preserves known visible error markers. A bounded
+plain-text probe reads those messages only on official login paths; it never
+reads input values, account content or full login HTML. Unit tests verify the
+extraction boundary and native network/HTTP details. Packaged runtime checks
+show a synthetic invalid-verification-code message while keeping the original
+password input usable, then an HTTP 503 failure with Reload. Native sandbox,
+context isolation, exact HTTPS origin and no remote preload remain intact.
+Browser embedding cannot read cross-origin authentication messages; those stay
+in UTAR's form, with browser load-error/timeout guidance and direct-page fallback.
+No real account credentials or CAPTCHA were submitted.
+
+Fresh final checks passed strict types, **141 unit/component tests in 25 files**,
+web/Electron production builds, Windows packaging and **42 runtime tests**
+(17 Chromium, 17 Firefox, 8 packaged Windows). Ordinary calendar geometry still
+passes at 1280×720, 1024×600, 375×667 and 320×667, with weekday rows and horizontal
+08:00–18:00 labels. The root launcher reports Current for Planner 0.4.0.
+
+Current synthetic-data captures: [docs/planner.png](docs/planner.png),
+[docs/course-groups.png](docs/course-groups.png), [docs/login-error.png](docs/login-error.png),
+and [docs/school-day-mobile.png](docs/school-day-mobile.png). One independent review
+was completed; its P2 height finding was fixed, with no second review requested.
+No new dependencies were introduced. User-owned root PNGs and suggestion/ were
+untouched and excluded from the change.

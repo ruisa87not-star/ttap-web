@@ -4,24 +4,25 @@ import userEvent from '@testing-library/user-event';
 import {beforeEach,expect,it,vi} from 'vitest';
 import {Planner} from '../../src/renderer/planner/Planner';
 import {TimetableView} from '../../src/renderer/planner/TimetableView';
+import {courseAvailability} from '../../src/core/courseAvailability';
 import {solveTimetables} from '../../src/core/solveTimetables';
 import type {Project,SolveResult} from '../../src/shared/model';
 import {makeClass,makeMeeting,makeProject} from '../fixtures/projects';
-const solver=vi.hoisted(()=>({solve:vi.fn(),cancel:vi.fn(),dispose:vi.fn()}));
-vi.mock('../../src/workers/SolverClient',()=>({SolverClient:class {solve=solver.solve;cancel=solver.cancel;dispose=solver.dispose;}}));
-beforeEach(()=>{vi.clearAllMocks();solver.solve.mockImplementation(async input=>solveTimetables(input));});
+const solver=vi.hoisted(()=>({solve:vi.fn(),availability:vi.fn(),cancel:vi.fn(),dispose:vi.fn()}));
+vi.mock('../../src/workers/SolverClient',()=>({SolverClient:class {solve=solver.solve;availability=solver.availability;cancel=solver.cancel;dispose=solver.dispose;}}));
+beforeEach(()=>{vi.clearAllMocks();solver.availability.mockImplementation(async input=>courseAvailability(input));solver.solve.mockImplementation(async input=>solveTimetables(input));});
 function Harness({initial=makeProject()}:{initial?:Project}){const[p,setP]=useState(initial);return <Planner project={p} onChange={setP}/>;}
 it('hides and reopens the course sidebar without changing selected classes',async()=>{
-  render(<Harness/>);await userEvent.selectOptions(screen.getByLabelText('Lecture for TEST1013'),makeProject().courses[0].classes[0].id);
-  await userEvent.click(screen.getByRole('button',{name:'Hide courses'}));
-  const show=screen.getByRole('button',{name:'Show courses'});expect(show).toHaveAttribute('aria-expanded','false');await userEvent.click(show);
-  expect(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'})).toBeChecked();expect(screen.getByLabelText('Lecture for TEST1013')).toHaveValue(makeProject().courses[0].classes[0].id);
+  render(<Harness/>);await userEvent.click(screen.getByRole('button',{name:'Choose groups for TEST1013'}));await userEvent.selectOptions(screen.getByLabelText('Lecture for TEST1013'),makeProject().courses[0].classes[0].id);await userEvent.click(screen.getByRole('button',{name:'Close group selection'}));
+  await userEvent.click(screen.getByRole('button',{name:'Collapse course sidebar'}));
+  const show=screen.getByRole('button',{name:'Expand course sidebar'});expect(show).toHaveAttribute('aria-expanded','false');await userEvent.click(show);
+  expect(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'})).toBeChecked();await userEvent.click(screen.getByRole('button',{name:'Choose groups for TEST1013'}));expect(screen.getByLabelText('Lecture for TEST1013')).toHaveValue(makeProject().courses[0].classes[0].id);
 });
 it('generates a timetable, then invalidates it after a condition change',async()=>{
   render(<Harness/>);
   const table=screen.getByRole('region',{name:'Weekly timetable'});expect(await within(table).findAllByText('TEST1013')).toHaveLength(2);
   await userEvent.click(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'}));
-  expect(within(table).queryAllByText('TEST1013')).toHaveLength(0);expect(screen.getByRole('button',{name:'Generate'})).toBeDisabled();
+  expect(within(table).queryAllByText('TEST1013')).toHaveLength(0);expect(screen.queryByRole('button',{name:'Generate'})).toBeNull();
 });
 it('keeps cancel available and ignores results after a condition change',async()=>{
   let finish!:(r:SolveResult)=>void;solver.solve.mockImplementation(()=>new Promise(resolve=>finish=resolve));
@@ -35,7 +36,7 @@ it('cancels without showing an error',async()=>{
   await userEvent.click(screen.getByRole('button',{name:'Cancel calculation'}));expect(screen.queryByRole('alert')).toBeNull();
 });
 it('passes a fixed class and unavailable time to the solver and reports no solution',async()=>{
-  render(<Harness/>);await userEvent.selectOptions(screen.getByLabelText('Lecture for TEST1013'),makeProject().courses[0].classes[0].id);
+  render(<Harness/>);await userEvent.click(screen.getByRole('button',{name:'Choose groups for TEST1013'}));await userEvent.selectOptions(screen.getByLabelText('Lecture for TEST1013'),makeProject().courses[0].classes[0].id);await userEvent.click(screen.getByRole('button',{name:'Close group selection'}));
   await userEvent.click(screen.getByRole('button',{name:'Add unavailable time'}));
   expect(await screen.findByText('No timetable matches your current conditions.')).toBeInTheDocument();
   expect(solver.solve.mock.calls.at(-1)?.[0].selection.lockedClassIds).toHaveLength(1);
@@ -52,18 +53,16 @@ it('shows every meeting without a teaching-week filter, including alternating we
   const buttons=screen.getByRole('region',{name:'Monday'}).querySelectorAll('button');
   expect(buttons[0].style.top).not.toBe(buttons[1].style.top);
 });
-it('checks selected courses immediately and reports incompatible combinations',async()=>{
+it('blocks an incompatible course at its card without clearing the valid timetable',async()=>{
   const p=makeProject();p.selection.courseCodes=[];
   p.courses.push({code:'OTHER1013',name:'Conflicting course',classes:[makeClass({courseCode:'OTHER1013'})]});
   render(<Harness initial={p}/>);
   await userEvent.click(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'}));
   expect(await screen.findByText('No clashes. Your selected courses fit together.')).toBeInTheDocument();
-  await userEvent.click(screen.getByRole('checkbox',{name:'OTHER1013 Conflicting course'}));
-  expect(await screen.findByRole('alert')).toHaveTextContent('Clash detected');
-  expect(screen.getByRole('alert')).toHaveTextContent('OTHER1013');
-  expect(within(screen.getByRole('region',{name:'Weekly timetable'})).queryByText('TEST1013')).toBeNull();
-  await userEvent.click(screen.getByRole('checkbox',{name:'OTHER1013 Conflicting course'}));
-  expect(await screen.findByText('No clashes. Your selected courses fit together.')).toBeInTheDocument();
+  const blocked=screen.getByRole('checkbox',{name:'OTHER1013 Conflicting course'});expect(blocked).toBeDisabled();expect(blocked.closest('article')).toHaveTextContent('Course clash');
+  await userEvent.click(blocked);expect(blocked).not.toBeChecked();
+  expect(within(screen.getByRole('region',{name:'Weekly timetable'})).queryAllByText('TEST1013')).toHaveLength(2);
+  await userEvent.click(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'}));expect(blocked).toBeEnabled();
   expect(screen.queryByLabelText('Teaching week')).toBeNull();
 });
 it('finds a compatible alternative immediately instead of rejecting an overlapping first group',async()=>{
@@ -72,7 +71,7 @@ it('finds a compatible alternative immediately instead of rejecting an overlappi
   render(<Harness initial={p}/>);await userEvent.click(screen.getByRole('checkbox',{name:'OTHER1013 Other'}));
   expect(await screen.findByText('No clashes. Your selected courses fit together.')).toBeInTheDocument();
   expect(screen.getByRole('region',{name:'Wednesday'}).querySelector('button')).not.toBeNull();
-  await userEvent.selectOptions(screen.getByLabelText('Lecture for TEST1013'),p.courses[0].classes[0].id);
+  await userEvent.click(screen.getByRole('button',{name:'Choose groups for TEST1013'}));await userEvent.selectOptions(screen.getByLabelText('Lecture for TEST1013'),p.courses[0].classes[0].id);await userEvent.click(screen.getByRole('button',{name:'Close group selection'}));
   expect(await screen.findByRole('alert')).toHaveTextContent('Clash detected');
 });
 it('previews visual time constraints before applying them to the project',async()=>{

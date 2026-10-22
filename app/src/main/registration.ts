@@ -1,6 +1,7 @@
 import {session,WebContentsView,type BrowserWindow} from 'electron';
 import type {FileOutcome,HtmlSource} from '../shared/model';
 import {UTAR_REGISTRATION_URL,type RegistrationBounds,type RegistrationStatus} from '../shared/registration';
+import {readLoginError} from '../shared/loginError';
 
 export interface RegistrationPort{
   open():void;
@@ -22,9 +23,9 @@ const loginCSS=`
   html, body { margin:0 !important; padding:0 !important; min-width:0 !important; background:white; }
   body { padding:12px 0 8px !important; }
   #body_col { width:100% !important; }
-  #body_col > table, body > br, body > table { display:none !important; }
+  #body_col > table:not(:has(:is([role=alert],.error,.error-message,.login-error,.alert-danger,.text-danger,#errorMessage,#errorMsg,#error-message,font[color="red" i],font[color="#ff0000" i]))), body > br, body > table:not(:has(:is([role=alert],.error,.error-message,.login-error,.alert-danger,.text-danger,#errorMessage,#errorMsg,#error-message,font[color="red" i],font[color="#ff0000" i]))) { display:none !important; }
   #body_col h2 { margin:0 0 32px !important; text-align:center; font-size:32px; font-weight:400; }
-  body > div:not(#body_col):not(:has(form)):not(:has(>strong)) { display:none !important; }
+  body > div:not(#body_col):not(:has(form)):not(:has(>strong)):not(:is([role=alert],.error,.error-message,.login-error,.alert-danger,.text-danger,#errorMessage,#errorMsg,#error-message)):not(:has(:is([role=alert],.error,.error-message,.login-error,.alert-danger,.text-danger,#errorMessage,#errorMsg,#error-message,font[color="red" i],font[color="#ff0000" i]))) { display:none !important; }
   form { margin:0; }
   form > table { width:calc(100% - 32px) !important; max-width:824px; table-layout:fixed; }
   form input:not([type=hidden]):not([type=submit]):not([type=reset]) { width:min(256px, 96%); box-sizing:border-box; }
@@ -34,11 +35,17 @@ const loginCSS=`
 `;
 
 export function createRegistrationView(window:BrowserWindow):RegistrationPort{
-  let view:WebContentsView|undefined;let loading=false;let error='';
+  let view:WebContentsView|undefined;let loading=false;let error='';let loginError='';let generation=0;let reading=false;
+  function probeLogin(){
+    if(!view||view.webContents.isDestroyed()||reading||loading||error)return;
+    const wc=view.webContents,url=wc.getURL();if(!isRegistrationURL(url)||!/^\/portal\/courseRegStu\/(?:login|loginProSurvey)\.jsp$/.test(new URL(url).pathname))return;
+    const id=generation;reading=true;
+    void wc.executeJavaScript(`(${readLoginError.toString()})(document)`).then((value:unknown)=>{if(id===generation&&!wc.isDestroyed()&&wc.getURL()===url)loginError=typeof value==='string'?value.slice(0,500):'';}).catch(()=>{/* The original form and UTAR dialogs remain available. */}).finally(()=>{reading=false;});
+  }
   function load(){
     if(!view||view.webContents.isDestroyed())return;
-    loading=true;error='';
-    void view.webContents.loadURL(UTAR_REGISTRATION_URL).catch(()=>{loading=false;error='UTAR could not be loaded. Check your connection and choose Reload.';});
+    const id=++generation;loading=true;error='';loginError='';
+    void view.webContents.loadURL(UTAR_REGISTRATION_URL).catch(()=>{if(id===generation){loading=false;if(!error)error='UTAR could not be loaded. Check your connection and choose Reload.';}});
   }
   function open(){
     if(view&&!view.webContents.isDestroyed())return;
@@ -52,15 +59,16 @@ export function createRegistrationView(window:BrowserWindow):RegistrationPort{
     const guard=(event:Electron.Event,url:string)=>{if(!isRegistrationURL(url)){event.preventDefault();error='This page tried to leave the UTAR registration website. Use Reload to return.';view?.setVisible(false);}};
     wc.on('will-navigate',guard);wc.on('will-redirect',guard);
     wc.setWindowOpenHandler(({url})=>{if(isRegistrationURL(url))void wc.loadURL(url).catch(()=>{error='The UTAR page could not be loaded.';});return {action:'deny'};});
-    wc.on('did-start-loading',()=>{loading=true;});
+    wc.on('did-start-loading',()=>{++generation;loading=true;error='';loginError='';});
     wc.on('did-stop-loading',()=>{loading=false;});
-    wc.on('did-finish-load',()=>{error='';});
+    wc.on('did-navigate',(_event,_url,code,text)=>{if(code>=400){error=`UTAR returned HTTP ${code}${text?' '+String(text).slice(0,100):''}. Choose Reload to try again.`;view?.setVisible(false);}});
+    wc.on('did-finish-load',()=>{loading=false;probeLogin();});
     wc.on('dom-ready',()=>{
       if(isRegistrationURL(wc.getURL())&&new URL(wc.getURL()).pathname==='/portal/courseRegStu/login.jsp'){
         void wc.insertCSS(loginCSS).catch(()=>{ /* The original page remains usable if its presentation changes. */ });
       }
     });
-    wc.on('did-fail-load',(_event,code,_description,_url,isMainFrame)=>{if(isMainFrame&&code!==-3){loading=false;error='UTAR could not be loaded. Check your connection and choose Reload.';view?.setVisible(false);}});
+    wc.on('did-fail-load',(_event,code,description,_url,isMainFrame)=>{if(isMainFrame&&code!==-3){loading=false;error=`UTAR could not be loaded (${String(description).slice(0,120)}, ${code}). Check your connection and choose Reload.`;view?.setVisible(false);}});
     wc.on('will-attach-webview',event=>event.preventDefault());
     load();
   }
@@ -74,7 +82,7 @@ export function createRegistrationView(window:BrowserWindow):RegistrationPort{
     view.setVisible(!error);
   }
   window.on('resize',()=>view?.setVisible(false));
-  window.on('closed',()=>{if(view&&!view.webContents.isDestroyed())view.webContents.close();view=undefined;});
+  window.on('closed',()=>{++generation;if(view&&!view.webContents.isDestroyed())view.webContents.close();view=undefined;});
   async function readPage():Promise<FileOutcome<HtmlSource>>{
     if(!view||view.webContents.isDestroyed())return {status:'error',message:'Open the registration page first.'};
     const wc=view.webContents;const url=wc.getURL();
@@ -91,5 +99,5 @@ export function createRegistrationView(window:BrowserWindow):RegistrationPort{
       return {status:'ok',value:{name:'UTAR course schedule',text}};
     }catch{return {status:'error',message:'The timetable page could not be read. Try Reload, or import saved HTML.'};}
   }
-  return {open,setBounds,status:()=>({loading,error}),reload:()=>{open();load();},readPage};
+  return {open,setBounds,status:()=>{probeLogin();return {loading,error,loginError};},reload:()=>{open();load();},readPage};
 }

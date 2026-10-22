@@ -3,8 +3,9 @@ import userEvent from '@testing-library/user-event';
 import {expect,it,vi} from 'vitest';
 import {App} from '../../src/renderer/App';
 import {ImportPanel} from '../../src/renderer/import/ImportPanel';
+import {courseAvailability} from '../../src/core/courseAvailability';
 import {solveTimetables} from '../../src/core/solveTimetables';
-vi.mock('../../src/workers/SolverClient',()=>({SolverClient:class {solve=async(input:Parameters<typeof solveTimetables>[0])=>solveTimetables(input);cancel(){}dispose(){}}}));
+vi.mock('../../src/workers/SolverClient',()=>({SolverClient:class {solve=async(input:Parameters<typeof solveTimetables>[0])=>solveTimetables(input);availability=async(input:Parameters<typeof solveTimetables>[0])=>courseAvailability(input);cancel(){}dispose(){}}}));
 
 it('starts with a tutorial that supports next, previous, skip and replay',async()=>{
   render(<App/>);expect(screen.getByRole('heading',{name:'A quick tour of TTAP.'})).toBeInTheDocument();

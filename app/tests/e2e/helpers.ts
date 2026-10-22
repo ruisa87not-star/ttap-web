@@ -9,13 +9,15 @@ export async function demo(page:Page){
   await page.getByRole('checkbox',{name:/^TEST1013 /}).check();await page.getByRole('checkbox',{name:/^TEST2023 /}).check();
 }
 export async function configure(page:Page){
+  await page.getByRole('button',{name:'Choose groups for TEST1013'}).click();
   await page.getByLabel('Tutorial for TEST1013').selectOption({label:'Group 1 / #3'});
+  await page.getByRole('button',{name:'Close group selection'}).click();
   await page.getByRole('combobox',{name:'Day',exact:true}).selectOption('6');await page.getByRole('button',{name:'Add unavailable time'}).click();
 }
-export async function generate(page:Page){await page.getByRole('button',{name:'Generate',exact:true}).click();await expect(page.getByText('Option 1 of 2')).toBeVisible();}
+export async function waitForTimetable(page:Page){if(await page.getByRole('button',{name:'Timetable',exact:true}).isVisible())await page.getByRole('button',{name:'Timetable',exact:true}).click();await expect(page.getByText('Option 1 of 2')).toBeVisible();}
 export async function expectPrimaryActionInViewport(page:Page){
-  await expect(page.getByRole('button',{name:'Generate',exact:true})).toBeVisible();
-  const box=await page.getByRole('button',{name:'Generate',exact:true}).boundingBox();
+  await expect(page.getByRole('button',{name:'Export image',exact:true})).toBeVisible();
+  const box=await page.getByRole('button',{name:'Export image',exact:true}).boundingBox();
   const height=await page.evaluate(()=>innerHeight);
   expect(box).not.toBeNull();expect(box!.y).toBeGreaterThanOrEqual(0);expect(box!.y+box!.height).toBeLessThanOrEqual(height);
 }
@@ -52,7 +54,23 @@ export async function downloadImage(page:Page,path:string){
   const event=page.waitForEvent('download');await page.getByRole('button',{name:'Export image'}).click();await (await event).saveAs(path);
   await page.getByRole('button',{name:'I kept the file'}).click();await expect(page.getByText('Image exported',{exact:true})).toBeVisible();await expectPng(path);
 }
-export async function openWebProject(page:Page,path:string){const event=page.waitForEvent('filechooser');await page.getByRole('button',{name:'Open project'}).click();await (await event).setFiles(path);}
+export async function importFixturePlan(page:Page,path:string){await importPlan(page,await readProject(path));}
+export function planHtml(project:Project):string{
+  const esc=(value:unknown)=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');const time=(minute:number)=>String(Math.floor(minute/60)).padStart(2,'0')+':'+String(minute%60).padStart(2,'0');
+  return '<div id="overviewSector"><table><tr>'+['No','Type','Group','Class size','Day','Time','Hours','Week','Room','Remark'].map(label=>'<th>'+label+'</th>').join('')+'</tr>'+project.courses.map(course=>`<tr><td colspan="10">${esc(course.code)} - ${esc(course.name)} [${course.creditHours??3}]</td></tr>`+course.classes.flatMap(option=>option.meetings.map(meeting=>'<tr>'+[option.number,option.type,option.group,'40',['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][meeting.day-1],`${time(meeting.startMinute)} - ${time(meeting.endMinute)}`,'1',meeting.weeks.join(','),meeting.room,option.remark??''].map(value=>'<td>'+esc(value)+'</td>').join('')+'</tr>')).join('')).join('')+'</table></div>';
+}
+export async function importPlan(page:Page,project:Project){
+  if(await page.getByRole('heading',{name:'Build your week.'}).isVisible())await page.getByRole('link',{name:'TTAP UTAR timetable planner'}).click();
+  await page.getByRole('button',{name:'Add slots manually'}).click();await page.getByRole('button',{name:'Paste HTML'}).click();await page.getByLabel('UTAR course HTML').fill(planHtml(project));await page.getByRole('button',{name:'Preview import'}).click();await page.getByRole('button',{name:'Use these courses'}).click();
+  if(await page.getByRole('button',{name:'Discard changes'}).isVisible())await page.getByRole('button',{name:'Discard changes'}).click();
+  if(await page.getByRole('button',{name:'Courses',exact:true}).isVisible())await page.getByRole('button',{name:'Courses',exact:true}).click();
+  for(const code of project.selection.courseCodes)await page.getByRole('checkbox',{name:new RegExp('^'+code+' ')}).check();
+  for(const course of project.courses){const locks=course.classes.filter(option=>project.selection.lockedClassIds.includes(option.id));if(!locks.length)continue;await page.getByRole('button',{name:'Choose groups for '+course.code}).click();for(const option of locks)await page.getByLabel((({L:'Lecture',T:'Tutorial',P:'Practical'} as Record<string,string>)[option.type]??option.type)+' for '+course.code).selectOption(option.id);await page.getByRole('button',{name:'Close group selection'}).click();}
+  if(project.selection.blocked.length&&await page.getByRole('button',{name:'Conditions',exact:true}).isVisible())await page.getByRole('button',{name:'Conditions',exact:true}).click();
+  const time=(minute:number)=>String(Math.floor(minute/60)).padStart(2,'0')+':'+String(minute%60).padStart(2,'0');
+  for(const blocked of project.selection.blocked){await page.getByRole('combobox',{name:'Day',exact:true}).selectOption(String(blocked.day));await page.getByLabel('From',{exact:true}).fill(time(blocked.startMinute));await page.getByLabel('Until',{exact:true}).fill(time(blocked.endMinute));await page.getByRole('button',{name:'Add unavailable time'}).click();}
+  if(await page.getByRole('button',{name:'Timetable',exact:true}).isVisible())await page.getByRole('button',{name:'Timetable',exact:true}).click();
+}
 export async function readProject(path:string):Promise<Project>{const result=decodeProject(await readFile(path,'utf8'));if(!result.ok)throw new Error(result.errors.join(' '));return result.value;}
 export async function expectCandidate(page:Page,project:Project,index=0){
   const timetable=solveTimetables({courses:project.courses,selection:project.selection}).solutions[index];

@@ -42,3 +42,24 @@ Deferred minor findings: none.
   format adapters stay available for compatibility, without an Export project UI.
 - Manual-import screenshots use marked synthetic examples. The upstream archive
   contains a student name/ID, so it is not bundled into the redesigned guide.
+
+
+## Planner 0.4.0 — guarded course selection and compact controls
+
+- Prospective course availability uses the same week-aware DFS, stopping at its
+  first solution. A separate cancellable Worker checks the catalog while the
+  timetable Worker retains the normal 500-option cap. Results are accepted only
+  for the current immutable project. Selected courses remain removable.
+- Group selectors move into a modal flyout reached by the selected-card arrow.
+  A portal keeps it visible across responsive sidebar changes; viewport-relative
+  maximum height makes long labels scroll within the remaining space.
+- The project toolbar and Generate control are removed. Export image occupies
+  the planner action position, and sidebar icons live beside the Courses panel.
+  File adapters remain for internal compatibility, without project-opening UI.
+- Native login probes read only known visible error-marker text (maximum 500
+  characters), never input values or page HTML. Cosmetic login styles preserve
+  error elements. HTTP and network failures remain distinct from correctable
+  form errors; sandbox, origin restrictions and isolated session stay intact.
+- Browser embedding cannot expose cross-origin authentication details to TTAP.
+  The official form retains those messages; load-error/timeout guidance and
+  a direct-page fallback remain available.

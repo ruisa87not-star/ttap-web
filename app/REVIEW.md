@@ -127,3 +127,20 @@ weekday rows. The focused Chromium regression passed after the fix.
 No additional actionable correctness, security or data-loss findings were
 reported. No second independent review was requested. The reviewer did not rerun
 the broad suite; the implementing agent runs the final gates separately.
+
+
+## Guarded selection, sidebar controls and login errors — Planner 0.4.0
+
+A fresh read-only review against `7021374` reported one P2: group-flyout
+positioning assumed a 360px height but long course names and three class types
+could extend below the screen. A browser regression reproduced a bottom at
+y=992 in a 720px viewport. The flyout now limits its height to the viewport
+minus its actual top and bottom margin, with internal scrolling. The regression
+passes and the final group selector remains reachable. No other confirmed
+P1/P2 issue was reported; no second review was requested.
+
+Runtime testing separately reproduced a responsive issue: a dialog inside the
+Courses aside disappeared when resizing to the narrow Timetable panel. Rendering
+the flyout through a portal fixes the issue; a desktop-to-320px regression
+now passes. Existing project/candidate guards, Worker cancellation, native
+isolation and image-save/dirty-close protection remain part of the final gates.

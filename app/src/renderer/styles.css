@@ -173,9 +173,25 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 .selection-count strong { color: var(--ink); font-size: 16px; }
 .planner-actions button { min-width: 120px; }
 .planner-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr) 232px; align-items: start; gap: 16px; }
+.sidebar-rail { display: none; }
+.course-heading, .course-card-row { display: flex; align-items: flex-start; gap: 8px; }
+.course-heading { align-items: center; }
+.course-heading h2 { font-size: 18px; }
+.course-card-row .course-choice { flex: 1; min-width: 0; }
+.sidebar-button, .group-arrow { display: grid; place-items: center; flex-shrink: 0; padding: 5px; min-width: 30px; min-height: 32px; }
+.group-arrow { font-size: 28px; line-height: 1; }
+.course-disabled { color: var(--muted); cursor: default; }
+.course-clash, .course-checking { margin: 10px 0 0 25px; font-size: 12px; line-height: 1.5; }
+.course-clash { color: #912d2d; }
+.course-checking { color: var(--muted); }
+.project-dialog.course-groups-dialog { position: fixed; margin: 0; width: min(360px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; }
+.course-groups-dialog .class-choices { margin: 0; }
+.course-groups-dialog > h2 { padding-right: 24px; font-size: 20px; }
+.course-groups-dialog .group-note { margin: 16px 0 0; font-size: 12px; }
 @media (min-width: 1101px) {
-  .planner-grid.courses-collapsed { grid-template-columns: minmax(0, 1fr) 232px; }
+  .planner-grid.courses-collapsed { grid-template-columns: 36px minmax(0, 1fr) 232px; }
   .planner-grid.courses-collapsed > .courses-panel { display: none; }
+  .courses-collapsed .sidebar-rail { display: block; }
 }
 .courses-panel, .conditions-panel, .schedule-panel { min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
 .courses-panel, .conditions-panel { padding: 16px; }
@@ -298,7 +314,8 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 
 /* The frame stays in the viewport; only the active content area can scroll. */
 .planner { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; }
-.selection-feedback { flex-shrink: 0; padding: 7px 12px; margin-bottom: 10px; border: 1px solid #c9dfd2; border-radius: 6px; background: #f2f9f5; color: #205c3b; font-size: 13px; overflow-wrap: anywhere; max-height: 84px; overflow: auto; }
+.selection-feedback { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; padding: 7px 12px; margin-bottom: 10px; border: 1px solid #c9dfd2; border-radius: 6px; background: #f2f9f5; color: #205c3b; font-size: 13px; overflow-wrap: anywhere; max-height: 84px; overflow: auto; }
+.selection-feedback button { min-height: 28px; padding: 3px 8px; font-size: 12px; flex-shrink: 0; }
 .selection-feedback.has-clash { border-color: #edc4c4; background: #fff3f3; color: #8e2828; }
 .planner-title, .mobile-panels { flex-shrink: 0; }
 .planner-grid { flex: 1; min-height: 0; align-items: stretch; }
@@ -328,7 +345,7 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 .project-dialog .actions { flex-wrap: wrap; }
 
 @media (max-width: 1100px) {
-  .course-toggle { display: none; }
+  .courses-panel .sidebar-button { display: none; }
   .mobile-panels { display: flex; gap: 8px; margin-bottom: 16px; }
   .mobile-panels button { flex: 1; }
   .mobile-panels button[aria-pressed=true] { border-color: var(--blue); background: var(--blue); color: white; }
@@ -393,6 +410,7 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
   .planner-actions { width: auto; gap: 6px; }
   .planner-actions .selection-count { display: none; }
   .planner-actions button { min-width: 90px; padding: 6px; }
+  .planner-actions > [role=status] { display: none; }
   .brand-description { padding-left: 10px; font-size: 12px; }
   .brand { gap: 8px; font-size: 20px; }
   main { padding-right: 12px; padding-left: 12px; }

@@ -43,3 +43,8 @@ it('returns a bounded course source and rejects a navigation race or oversized r
 it.each([{x:0,y:0,width:1280,height:720},{x:-1000,y:50,width:800,height:500},{x:0,y:0,width:3840,height:2000}])('keeps initial window and its minimum within the work area',area=>{
   const bounds=initialWindowBounds(area);expect(bounds.x).toBeGreaterThanOrEqual(area.x);expect(bounds.y).toBeGreaterThanOrEqual(area.y);expect(bounds.x+bounds.width).toBeLessThanOrEqual(area.x+area.width);expect(bounds.y+bounds.height).toBeLessThanOrEqual(area.y+area.height);expect(bounds.minHeight).toBeLessThanOrEqual(bounds.height);
 });
+it('reports an actual load failure and preserves an HTTP failure after finish-load',()=>{
+  const {port,view}=controller();const handler=(name:string)=>view.webContents.on.mock.calls.find(([event]:[string])=>event===name)[1];
+  handler('did-fail-load')({},-105,'ERR_NAME_NOT_RESOLVED',view.url,true);expect(port.status().error).toContain('ERR_NAME_NOT_RESOLVED');
+  handler('did-start-loading')();handler('did-navigate')({},view.url,503,'Service Unavailable');handler('did-finish-load')();expect(port.status().error).toContain('HTTP 503');
+});

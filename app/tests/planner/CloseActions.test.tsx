@@ -1,8 +1,9 @@
 import {act,render,screen,within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach,expect,it,vi} from 'vitest';
+import {courseAvailability} from '../../src/core/courseAvailability';
 import {solveTimetables} from '../../src/core/solveTimetables';
-vi.mock('../../src/workers/SolverClient',()=>({SolverClient:class {solve=async(input:Parameters<typeof solveTimetables>[0])=>solveTimetables(input);cancel(){}dispose(){}}}));
+vi.mock('../../src/workers/SolverClient',()=>({SolverClient:class {solve=async(input:Parameters<typeof solveTimetables>[0])=>solveTimetables(input);availability=async(input:Parameters<typeof solveTimetables>[0])=>courseAvailability(input);cancel(){}dispose(){}}}));
 vi.mock('../../src/renderer/planner/registrationImage',()=>({renderRegistrationImage:()=> 'data:image/png;base64,example'}));
 import {App} from '../../src/renderer/App';
 afterEach(()=>{delete window.ttap;});

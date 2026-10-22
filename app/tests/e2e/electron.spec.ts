@@ -1,7 +1,7 @@
 import {test,expect,_electron,type ElectronApplication} from '@playwright/test';
 import {resolve} from 'node:path';
 import {readFile,writeFile} from 'node:fs/promises';
-import {demo,configure,generate,downloadImage,openWebProject,readProject,expectCandidate,expectPrimaryActionInViewport,schoolDayProject,expectSchoolDayInViewport} from './helpers';
+import {demo,configure,waitForTimetable,downloadImage,importFixturePlan,readProject,expectCandidate,expectPrimaryActionInViewport,importPlan,schoolDayProject,expectSchoolDayInViewport} from './helpers';
 let app:ElectronApplication;
 test.beforeEach(async()=>{
   app=await _electron.launch({executablePath:resolve('release/win-unpacked/TTAP-Planner.exe')});
@@ -12,12 +12,10 @@ test.beforeEach(async()=>{
 });
 test.afterEach(async()=>{if(app){await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().forEach(w=>w.destroy())).catch(()=>{});await app.close();}});
 
-test('packaged Planner 0.3.0 fits weekday rows and horizontal 08:00–18:00',async({},info)=>{
-  const page=await app.firstWindow();await expect(page.getByText('Planner 0.3.0',{exact:true})).toBeVisible();await expect(page).toHaveTitle('TTAP Planner 0.3.0');
-  expect(await app.evaluate(({app})=>app.getVersion())).toBe('0.3.0');
-  const path=info.outputPath('school-day.ttap.json');await writeFile(path,JSON.stringify(schoolDayProject()));
-  await app.evaluate(({dialog},filePath)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths:[filePath]});},path);
-  await page.getByRole('button',{name:'Open project'}).click();await page.getByRole('button',{name:'Generate',exact:true}).click();await expect(page.getByText('Option 1 of 1')).toBeVisible();
+test('packaged Planner 0.4.0 fits weekday rows and horizontal 08:00–18:00',async({},info)=>{
+  const page=await app.firstWindow();await expect(page.getByText('Planner 0.4.0',{exact:true})).toBeVisible();await expect(page).toHaveTitle('TTAP Planner 0.4.0');
+  expect(await app.evaluate(({app})=>app.getVersion())).toBe('0.4.0');
+  await importPlan(page,schoolDayProject());await expect(page.getByText('Option 1 of 1')).toBeVisible();
   for(const size of [[1280,720],[1024,600]]){
     await app.evaluate(({BrowserWindow},[width,height])=>{const win=BrowserWindow.getAllWindows()[0];win.unmaximize();win.setContentSize(width,height);},size);await expectSchoolDayInViewport(page);
     await page.screenshot({path:info.outputPath(`school-day-native-${size[0]}.png`)});
@@ -47,9 +45,9 @@ test('official login, manual guide and reversible navigation work in the package
   expect(await app.evaluate(({BrowserWindow,WebContentsView})=>BrowserWindow.getAllWindows()[0].contentView.children.filter(v=>v instanceof WebContentsView).every(v=>!v.getVisible()))).toBe(true);
   await page.getByRole('button',{name:'Cancel import'}).click();
   await expect(page.getByRole('region',{name:'Manual slot import guide'})).toContainText('Ctrl + U');await page.mouse.click(4,4);await expect(page.getByRole('dialog',{name:'Add slots manually'})).toHaveCount(0);
-  await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(1280,720));await demo(page);await generate(page);await page.getByRole('button',{name:'Hide courses'}).click();await expect(page.getByRole('button',{name:'Show courses'})).toHaveAttribute('aria-expanded','false');
+  await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(1280,720));await demo(page);await waitForTimetable(page);await page.getByRole('button',{name:'Collapse course sidebar'}).click();await expect(page.getByRole('button',{name:'Expand course sidebar'})).toHaveAttribute('aria-expanded','false');
   await page.screenshot({path:info.outputPath('desktop-expanded.png')});await page.getByRole('button',{name:'Go back'}).click();await page.getByRole('button',{name:'Back to planner'}).click();await expect(page.getByText('Option 1 of 2')).toBeVisible();
-  await page.getByRole('button',{name:'Show courses'}).click();await expect(page.getByRole('checkbox',{name:/^TEST1013 /})).toBeChecked();await page.getByRole('button',{name:'Tutorial',exact:true}).click();await page.getByRole('button',{name:'Skip tutorial'}).click();await expect(page.getByText('Option 1 of 2')).toBeVisible();
+  await page.getByRole('button',{name:'Expand course sidebar'}).click();await expect(page.getByRole('checkbox',{name:/^TEST1013 /})).toBeChecked();await page.getByRole('button',{name:'Tutorial',exact:true}).click();await page.getByRole('button',{name:'Skip tutorial'}).click();await expect(page.getByText('Option 1 of 2')).toBeVisible();
 });
 test('primary action remains visible in a compact Windows window',async()=>{
   expect(await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].isMaximized())).toBe(true);
@@ -58,7 +56,7 @@ test('primary action remains visible in a compact Windows window',async()=>{
 });
 test('native HTML import preserves the archived spanned-Remark layout',async()=>{
   const page=await app.firstWindow();await app.evaluate(({dialog},path)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths:[path]});},resolve('tests/fixtures/student-td-mode.html'));
-  await page.getByRole('button',{name:'Add slots manually'}).click();await page.getByRole('button',{name:'Choose HTML files'}).click();await expect(page.getByText('1 courses',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Use these courses'}).click();await page.getByRole('checkbox',{name:/^TEST1013 /}).check();await page.getByRole('button',{name:'Generate',exact:true}).click();
+  await page.getByRole('button',{name:'Add slots manually'}).click();await page.getByRole('button',{name:'Choose HTML files'}).click();await expect(page.getByText('1 courses',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Use these courses'}).click();await page.getByRole('checkbox',{name:/^TEST1013 /}).check();
   await expect(page.getByText('Option 1 of 1')).toBeVisible();const timetable=page.getByRole('region',{name:'Weekly timetable'});await expect(timetable.getByRole('button',{name:/Lecture group 1, 09:00/})).toBeVisible();await expect(timetable.getByRole('button',{name:/Lecture group 1, 10:00/})).toBeVisible();
 });
 test('web and native export real registration images and preserve cancellation protection',async({page},info)=>{
@@ -85,8 +83,18 @@ test('packaged demo, native HTML picker and cancelled save preserve dirty-close 
   const page=await app.firstWindow();const paths=[resolve('tests/fixtures/student-v2.html'),resolve('tests/fixtures/paginated.html')];
   await app.evaluate(({dialog},filePaths)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths});dialog.showSaveDialog=async()=>({canceled:true,filePath:''});},paths);
   await page.getByRole('button',{name:'Add slots manually'}).click();await page.getByRole('button',{name:'Choose HTML files'}).click();await expect(page.getByText('2 courses',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Use these courses'}).click();await page.getByRole('checkbox',{name:/^TEST1013 /}).check();
-  await page.getByRole('button',{name:'Generate',exact:true}).click();await expect(page.getByRole('region',{name:'Weekly timetable'})).toContainText('TEST1013');
+  await expect(page.getByRole('region',{name:'Weekly timetable'})).toContainText('TEST1013');
   await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].close());await page.getByRole('button',{name:'Export and continue'}).click();await expect(page.getByRole('dialog',{name:'Keep your changes?'})).toBeVisible();await page.getByRole('button',{name:'Cancel',exact:true}).click();await expect(page.getByText('Image not exported')).toBeVisible();
   const prefs=await app.evaluate(({BrowserWindow})=>{const wc=BrowserWindow.getAllWindows()[0].webContents as Electron.WebContents&{getLastWebPreferences:()=>Electron.WebPreferences};const p=wc.getLastWebPreferences();return {sandbox:p.sandbox,contextIsolation:p.contextIsolation,nodeIntegration:p.nodeIntegration,webSecurity:p.webSecurity};});expect(prefs).toEqual({sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true});
   expect(await page.evaluate(()=>({require:typeof Reflect.get(window,'require'),process:typeof Reflect.get(window,'process'),bridge:Object.keys(window.ttap??{}).sort()}))).toEqual({require:'undefined',process:'undefined',bridge:['confirmClose','exportImage','exportProject','getRegistrationStatus','onCloseRequested','openProject','openRegistration','pickHtml','readRegistrationPage','reloadRegistration','setDirty','setRegistrationBounds']});
+});
+
+test('native login errors remain visible while connection failures report the actual problem',async({},info)=>{
+  const page=await app.firstWindow();const login=await readFile('tests/fixtures/registration-login.html','utf8');
+  await app.evaluate(({session},html)=>{const protocol=session.fromPartition('ttap-registration').protocol;protocol.unhandle('https');protocol.handle('https',()=>new Response(html+'<div class="error" role="alert">Invalid verification code. Please try again.</div>',{headers:{'content-type':'text/html'}}));},login);
+  await page.getByRole('button',{name:'Reload',exact:true}).click();await expect(page.getByRole('alert')).toContainText('Invalid verification code');
+  const state=await app.evaluate(async({BrowserWindow,WebContentsView})=>{const view=BrowserWindow.getAllWindows()[0].contentView.children.find(v=>v instanceof WebContentsView) as Electron.WebContentsView;return {visible:view.getVisible(),form:await view.webContents.executeJavaScript("document.querySelector('input[type=password]').getBoundingClientRect().width>0 && getComputedStyle(document.querySelector('[role=alert]')).display!=='none'")};});expect(state).toEqual({visible:true,form:true});
+  const capture=await app.evaluate(async({BrowserWindow,WebContentsView})=>{const view=BrowserWindow.getAllWindows()[0].contentView.children.find(v=>v instanceof WebContentsView) as Electron.WebContentsView;return (await view.webContents.capturePage()).toPNG().toString('base64');});await writeFile(info.outputPath('login-error.png'),Buffer.from(capture,'base64'));
+  await app.evaluate(({session})=>{const protocol=session.fromPartition('ttap-registration').protocol;protocol.unhandle('https');protocol.handle('https',()=>new Response('Maintenance',{status:503,statusText:'Service Unavailable'}));});
+  await page.getByRole('button',{name:'Reload',exact:true}).click();await expect(page.getByRole('alert')).toContainText('HTTP 503');await expect(page.getByRole('button',{name:'Reload',exact:true})).toBeEnabled();
 });
