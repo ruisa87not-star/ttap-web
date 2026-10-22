@@ -7,12 +7,12 @@ course-only archived upstream rows were used; no UTAR account was accessed.
 | Check | Result |
 | --- | --- |
 | Strict TypeScript | Passed |
-| Unit/component tests | 104 passed in 15 files |
+| Unit/component tests | 120 passed in 17 files |
 | Production web build | Passed; separate worker emitted |
 | Production Electron build | Passed; sandbox-compatible CommonJS preload |
 | Windows directory packaging | Passed; official installed Electron runtime |
-| Chromium production workflows | 10 passed |
-| Firefox production workflows | 10 passed |
+| Chromium production workflows | 12 passed |
+| Firefox production workflows | 12 passed |
 | Packaged Windows workflows | 6 passed |
 | Browser bundle boundary | No Electron IPC, Node imports or global require |
 | Source whitespace check | Passed |
@@ -118,3 +118,45 @@ The native browser-launch test captures the URL at the shell boundary; it does
 not authenticate. Live UTAR login-page retrieval timed out, and no UTAR account
 was used. Actual authentication and current authenticated page contents remain
 unverified.
+
+## Screen fitting and embedded UTAR registration
+
+Read-only inspection of the installed TTAP v4.0.0 archive at
+`C:\Users\DarylWong\AppData\Local\Programs\TTAP\resources\app.asar` confirmed that
+its main window maximizes and hosts the legacy website. Its certificate and
+web-security bypasses were identified during inspection; the new implementation
+retains default certificate validation and webSecurity/contextIsolation/sandbox.
+The installed application and its data were not modified or executed.
+
+The new frame has no document-level scrolling. Import/tutorials and planner
+panels scroll internally; calendar sizing uses the remaining panel space.
+Initial native window bounds and minimum dimensions are constrained to the
+display work area. Chromium and Firefox reproduced the original overflow before
+the fix, then passed checks at 1280×720, 1024×600 and 375×667.
+
+Desktop registration now uses a same-window WebContentsView with an in-memory
+session, no preload, no Node integration and an exact HTTPS-origin navigation
+policy. Verified local IPC handles opening, bounded placement, status, reload and
+course extraction. Extraction requires the known timetable URL, rejects password
+inputs inside the remote expression, returns only the expected course table,
+checks page changes and limits the result to 10 MiB. Browser iframe permission is
+limited to the official origin; normal browser restrictions remain in force.
+
+The packaged runtime used synthetic official-origin responses to verify login
+rejection, an expired login form at the timetable URL, omission of unrelated
+account markup, course preview, isolation settings and native-view placement at
+1280×720 and 800×600. View dimensions stayed within the client area below the app
+header. Local dirty-close and project exchange checks still pass.
+
+Independent review issues were reproduced and fixed: late capture completion
+after navigation, password forms at a valid timetable URL, and unreachable
+centered empty-state content in short panels. Full fresh validation passed
+strict types, **120 unit/component tests**, both builds, Windows packaging and
+all **30 runtime tests** (12 Chromium, 12 Firefox, 6 packaged Windows).
+
+A separate unauthenticated native probe loaded the real official URL with title
+`Welcome to Course Registration System`. The native child view was visible and
+inside its parent bounds. [docs/registration.png](docs/registration.png) captures
+that view's actual content; it is not a composite window screenshot. No account
+or CAPTCHA was submitted. Authenticated timetable layouts, service expiry,
+popups and pagination remain unverified against the live service.

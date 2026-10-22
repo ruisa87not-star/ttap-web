@@ -37,7 +37,7 @@ Framework references: [React createRoot](https://react.dev/reference/react-dom/c
 Desktop boundaries follow [Electron protocol registration](https://www.electronjs.org/docs/latest/api/protocol):
 the standard, secure `ttap` scheme is registered before app readiness, serves only
 packaged index/JS/CSS resources, and retains CSP. Sandboxed CommonJS preload exposes
-seven named capabilities; native dialog results alone supply filesystem paths.
+eleven named capabilities; native dialog results alone supply filesystem paths.
 Packaging uses the documented [electronDist option](https://www.electron.build/docs/api/electron-builder.interface.configuration/)
 to reuse the official installed runtime on Windows.
 
@@ -45,7 +45,10 @@ The local tutorial and manual HTML import instructions follow the original
 [tutorial flow](../src/ts/react/tutorial/tutorial.tsx) and
 [How to add slot manually](../HowToAddSlotManually.md). Instructions are rewritten
 for the new preview/confirm controls and multi-file import; original screenshots
-and remote tutorial fetching are not included. The registration handoff uses
-[Electron shell.openExternal](https://www.electronjs.org/docs/latest/api/shell#shellopenexternalurl-options)
-from main process with the official URL fixed in code, following the
-[external URL security guidance](https://www.electronjs.org/docs/latest/tutorial/security#15-do-not-use-shellopenexternal-with-untrusted-content).
+and remote tutorial fetching are not included. Integrated registration uses
+[Electron WebContentsView](https://www.electronjs.org/docs/latest/api/web-contents-view)
+in an isolated session, with no renderer bridge exposed to the official page.
+The fixed HTTPS destination and restricted extraction replace the earlier
+external-browser handoff. [View bounds](https://www.electronjs.org/docs/latest/api/view#viewsetboundsbounds)
+track the available local slot; [screen work area](https://www.electronjs.org/docs/latest/api/screen)
+limits initial native window dimensions.

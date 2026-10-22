@@ -2,15 +2,15 @@
 import {beforeEach,expect,it,vi} from 'vitest';
 import {registerMainIpc} from '../../src/main/ipc';
 import {makeProject} from '../fixtures/projects';
-const mocks=vi.hoisted(()=>({handlers:new Map<string,Function>(),listeners:new Map<string,Function>(),open:vi.fn(),save:vi.fn(),write:vi.fn(),read:vi.fn(),html:vi.fn(),external:vi.fn()}));
+const mocks=vi.hoisted(()=>({handlers:new Map<string,Function>(),listeners:new Map<string,Function>(),open:vi.fn(),save:vi.fn(),write:vi.fn(),read:vi.fn(),html:vi.fn(),external:vi.fn(),registration:{open:vi.fn(),setBounds:vi.fn(),status:vi.fn(),reload:vi.fn(),readPage:vi.fn()}}));
 vi.mock('electron',()=>({ipcMain:{handle:(n:string,f:Function)=>mocks.handlers.set(n,f),on:(n:string,f:Function)=>mocks.listeners.set(n,f)},dialog:{showOpenDialog:mocks.open,showSaveDialog:mocks.save},shell:{openExternal:mocks.external}}));
 vi.mock('../../src/main/files',()=>({readProjectText:mocks.read,writeProjectAtomically:mocks.write,readHtmlPaths:mocks.html}));
 const frame={url:'ttap://app/index.html'};const wc={mainFrame:frame};const win={webContents:wc};const hooks={setDirty:vi.fn(),confirmClose:vi.fn()};
 const event={sender:wc,senderFrame:frame};
 const call=(n:string,e=event,...args:unknown[])=>mocks.handlers.get('ttap:'+n)!(e,...args);
-beforeEach(()=>{vi.clearAllMocks();mocks.handlers.clear();mocks.listeners.clear();frame.url='ttap://app/index.html';registerMainIpc(win as never,'ttap://app/index.html',hooks);});
-it('opens only the fixed official registration URL even if a renderer supplies another URL',async()=>{
-  await call('open-registration',event,'file:///C:/unexpected.exe');expect(mocks.external).toHaveBeenCalledExactlyOnceWith('https://unitreg.utar.edu.my/portal/courseRegStu/login.jsp');
+beforeEach(()=>{vi.clearAllMocks();mocks.handlers.clear();mocks.listeners.clear();frame.url='ttap://app/index.html';registerMainIpc(win as never,'ttap://app/index.html',hooks,mocks.registration);});
+it('opens the integrated registration view without forwarding a supplied URL or launching a browser',async()=>{
+  await call('open-registration',event,'file:///C:/unexpected.exe');expect(mocks.registration.open).toHaveBeenCalledExactlyOnceWith();expect(mocks.external).not.toHaveBeenCalled();
 });
 it('rejects registration requests from a subframe before opening a browser',async()=>{
   await expect(call('open-registration',{...event,senderFrame:{...frame}})).rejects.toThrow(/sender/i);expect(mocks.external).not.toHaveBeenCalled();

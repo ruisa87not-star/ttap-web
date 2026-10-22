@@ -1,7 +1,7 @@
 export function ManualImportGuide(){
   return <details className="manual-guide"><summary>How to add slots manually?</summary>
     <section aria-label="Manual slot import guide">
-      <p>In TTAP, adding slots manually means importing the HTML from your course timetable page.</p>
+      <p>In TTAP, adding slots manually means importing the HTML from your course timetable page. Use a regular browser for the source-copying steps below. In the desktop login view, you can use Preview courses from this page instead.</p>
       <ol>
         <li><strong>Log in.</strong> Open the Course Registration System using the link above and sign in with your UTAR account.</li>
         <li><strong>Open Course Timetable Preview.</strong> Display the course timetable data you want to arrange.</li>

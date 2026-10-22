@@ -15,6 +15,9 @@ the timetable. On smaller screens, switch between **Courses**, **Timetable** and
 **Conditions**; the same Generate/Cancel action is available from every panel.
 Course names use 14px text, with 12px course codes and 11px metadata in the calendar.
 The calendar scrolls independently to retain readable day columns.
+The application frame fits the available viewport. Long course lists, import
+instructions and timetable content scroll inside their own regions. Windows
+startup dimensions and minimum size are limited to the display's work area.
 
 ## Start
 
@@ -61,8 +64,11 @@ to import, or reopen it from the top-right **Tutorial** button at any time.
 
 1. Choose **Open Course Registration System** to open the
    [official UTAR login page](https://unitreg.utar.edu.my/portal/courseRegStu/login.jsp)
-   in your browser. Sign in there and open **Course Timetable Preview**.
-   Save the course pages as UTF-8 `.html` / `.htm` files. Choose
+   inside the app. On desktop it uses an isolated native web view. Sign in and
+   open **Course Timetable Preview**, then choose **Preview courses from this
+   page** to import the current page into the existing review step. Login forms
+   are rejected; capture supports the known `schedule/masterSchedule.jsp` page.
+   For manual import, save pages in a regular browser as UTF-8 `.html` / `.htm` files. Choose
    **Choose HTML files**, drop multiple pages together, or use **Paste HTML**.
    **How to add slots manually?** explains viewing the source with Ctrl+U,
    copying it and previewing the import. Save and import all pages together
@@ -91,8 +97,18 @@ the application, so export important work regularly.
 
 The top-left **Back** button returns to the previous in-app view. Returning to
 import or replaying the tutorial retains the current project and generated
-options; use **Back to planner** to resume. UTAR login happens in the browser;
-the app does not collect credentials or automatically register courses.
+options; use **Back to planner** to resume. Desktop login stays inside an isolated
+in-memory session without local file APIs. It closes with the app. The app does
+not automatically register courses.
+
+The web version embeds the same official page in an iframe. UTAR's frame or
+third-party-cookie policies may prevent browser login; its registration screen
+provides a direct-page fallback and saved HTML import. Desktop embedding does
+not depend on iframe permission. The live desktop login page loaded successfully;
+authenticated workflows still require validation with your account.
+
+An actual capture of the unauthenticated embedded UTAR content is in
+[docs/registration.png](docs/registration.png).
 
 ## Limits and compatibility
 

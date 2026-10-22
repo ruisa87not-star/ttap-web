@@ -53,3 +53,24 @@ recorded in [VERIFICATION.md](VERIFICATION.md): the browser handoff is covered,
 while authenticated UTAR behavior remains unverified. No second review was
 requested. The final full run passed strict types, 104 unit/component tests and
 26 runtime tests.
+
+## Embedded registration and viewport sizing — 2026-10-22
+
+One fresh read-only reviewer checked the native trust boundary, lifecycle and
+responsive reachability. Three P2 issues were reproduced and resolved:
+
+| Finding | Fix | Evidence |
+| --- | --- | --- |
+| A delayed capture could navigate after leaving the registration view | Invalidate capture generations on unmount, dialog suspension and reload | Both deferred-result component regressions failed, then passed |
+| URL validation alone did not reject a login form served at the timetable URL | Reject password fields inside the remote expression and return only the expected course table | Expired-login native fixture failed before the fix and passes after it |
+| Centered empty-state content clipped above the scrollable area in short panels | Use safe centering | Chromium/Firefox geometry checks failed before the fix and pass after it |
+
+The reviewer found no remaining source blocker after those changes. The final
+120-unit and 30-runtime checks passed. No second review was requested.
+
+Set-aside rulings: authenticated UTAR behavior and live popup/expiry flows remain
+unverified without an account; a subsequent unauthenticated probe did verify the
+real login page loads in the attached view. Documentation was completed after
+the review. Installed TTAP was inspected read-only by the implementing agent;
+its runtime was not independently compared. These limits are recorded in
+[VERIFICATION.md](VERIFICATION.md).

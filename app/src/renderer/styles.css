@@ -17,7 +17,9 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+html, body, #root { width: 100%; height: 100%; overflow: hidden; }
 body { margin: 0; }
+#root { display: flex; flex-direction: column; height: 100dvh; }
 button, input, select, textarea { font: inherit; }
 button {
   min-height: 42px;
@@ -46,6 +48,7 @@ p { color: var(--muted); line-height: 1.6; }
 
 /* Compact application chrome keeps the timetable close to the top. */
 .app-header {
+  flex-shrink: 0;
   height: 56px;
   padding: 0 24px;
   display: flex;
@@ -62,7 +65,21 @@ p { color: var(--muted); line-height: 1.6; }
 .brand-mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 6px; background: var(--amber); font-size: 25px; }
 .brand-description { margin-left: 4px; padding-left: 14px; border-left: 1px solid var(--line); color: var(--muted); font-size: 14px; font-weight: 400; }
 .local-label { color: var(--muted); font-size: 13px; }
-main { max-width: 1600px; margin: auto; padding: 20px 24px 32px; }
+main { display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; max-width: 1600px; margin: 0 auto; padding: 16px 24px; overflow: hidden; }
+.project-bar, .app-message { flex-shrink: 0; }
+.screen-view { flex: 1; min-height: 0; min-width: 0; overflow: auto; padding: 4px; }
+.screen-view[data-view=planner] { display: flex; overflow: hidden; }
+.screen-view[data-view=registration] { display: flex; overflow: hidden; }
+.registration-screen { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+.registration-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
+.registration-toolbar h1 { margin: 0 0 4px; font-size: 24px; }
+.registration-toolbar p { margin: 0; font-size: 13px; }
+.registration-toolbar .actions { flex-wrap: wrap; margin: 0; }
+.registration-status { flex-shrink: 0; margin: 8px 0; font-size: 12px; }
+.registration-slot, .registration-frame { flex: 1; width: 100%; min-width: 0; min-height: 0; border: 1px solid var(--line); border-radius: 6px; background: white; }
+.registration-error { padding: 24px; }
+.registration-error h2 { font-size: 21px; }
+@media (max-width: 950px) { .registration-toolbar { align-items: flex-start; flex-direction: column; } .registration-toolbar h1 { font-size: 21px; } .registration-toolbar button { min-height: 36px; font-size: 13px; } }
 .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 .project-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; margin-bottom: 16px; }
 .project-actions .actions { margin: 0; flex-wrap: wrap; }
@@ -235,6 +252,21 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 .class-details ul { margin: 8px 0; padding-left: 16px; font-size: 13px; line-height: 1.8; overflow-wrap: anywhere; }
 .mobile-panels { display: none; }
 
+/* The frame stays in the viewport; only the active content area can scroll. */
+.planner { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; }
+.planner-title, .mobile-panels { flex-shrink: 0; }
+.planner-grid { flex: 1; min-height: 0; align-items: stretch; }
+.courses-panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.courses-panel > .panel-heading, .courses-panel > .search-input { flex-shrink: 0; }
+.course-list { flex: 1; min-height: 0; max-height: none; }
+.conditions-panel { min-height: 0; overflow: auto; }
+.schedule-panel { display: flex; flex-direction: column; min-height: 0; }
+.schedule-toolbar, .result-toolbar, .calendar-note, .limit-note, .no-results { flex-shrink: 0; }
+.weekly-timetable { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+.calendar-scroll { flex: 1; min-height: 0; max-height: none; }
+.calendar-empty { flex: 1; min-height: 0; overflow: auto; justify-content: safe center; }
+.class-details { max-height: 45%; flex-shrink: 0; overflow: auto; }
+
 .project-dialog { width: calc(100% - 32px); max-width: 560px; padding: 24px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); box-shadow: 0 20px 80px #172b4933; }
 .project-dialog::backdrop { background: #172b4977; }
 .project-dialog .actions { flex-wrap: wrap; }
@@ -245,8 +277,10 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
   .mobile-panels button { flex: 1; }
   .mobile-panels button[aria-pressed=true] { border-color: var(--blue); background: var(--blue); color: white; }
   .planner-grid { display: block; }
+  .planner-grid > aside, .planner-grid > .schedule-panel { height: 100%; overflow: auto; }
   .planner-grid > aside, .planner-grid > .schedule-panel { display: none; }
   .panel-courses > .courses-panel, .panel-timetable > .schedule-panel, .panel-conditions > .conditions-panel { display: block; }
+  .panel-timetable > .schedule-panel { display: flex; overflow: hidden; }
   .course-list { max-height: none; }
   .class-choices { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
   .constraint-form { max-width: 450px; }
@@ -260,7 +294,7 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
   .planner-title { align-items: flex-start; flex-direction: column; gap: 12px; }
   .planner-actions { width: 100%; justify-content: space-between; gap: 12px; }
   .planner-title h1 { font-size: 26px; }
-  .calendar-scroll { max-height: 560px; }
+  .calendar-scroll { max-height: none; }
   .welcome { margin: 16px auto 20px; }
   .welcome p { font-size: 14px; }
   .import-panel { padding: 20px; }
@@ -279,6 +313,16 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 }
 
 @media (max-width: 600px) { .brand-description { display: none; } .header-start { gap: 8px; } }
+
+@media (max-height: 650px) {
+  .app-header { height: 48px; }
+  main { padding-top: 8px; padding-bottom: 8px; }
+  .project-actions { min-height: 36px; margin-bottom: 8px; }
+  .planner-title { gap: 8px; margin-bottom: 8px; }
+  .planner-title > div:first-child p, .calendar-note { display: none; }
+  .planner-title h1 { font-size: 24px; }
+  .mobile-panels { margin-bottom: 8px; }
+}
 
 @media (max-width: 420px) {
   .brand-description { padding-left: 10px; font-size: 12px; }

@@ -5,6 +5,28 @@ import {demo,configure,generate,downloadProject,openWebProject,readProject,expec
 
 test.beforeEach(async({page})=>{await page.goto('/');await page.getByRole('button',{name:'Skip tutorial'}).click();});
 
+test('opens registration inside the browser app and returns to the import form',async({page})=>{
+  await page.route('https://unitreg.utar.edu.my/**',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><h1>UTAR embedded test fixture</h1>'}));
+  await page.getByRole('link',{name:'Open Course Registration System'}).click();await expect(page.getByRole('region',{name:'Integrated course registration'})).toBeVisible();
+  await expect(page.frameLocator('iframe[title="UTAR Course Registration System"]').getByRole('heading',{name:'UTAR embedded test fixture'})).toBeVisible();
+  await page.getByRole('button',{name:'Go back'}).click();await expect(page.getByRole('region',{name:'Import courses'})).toBeVisible();
+});
+
+test('the app frame fits short screens while long sections scroll internally',async({page})=>{
+  for(const viewport of [{width:1280,height:720},{width:1024,height:600},{width:375,height:667}]){
+    await page.setViewportSize(viewport);await page.reload();
+    expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight&&document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await page.getByRole('button',{name:'Skip tutorial'}).click();await page.getByText('How to add slots manually?',{exact:true}).click();
+    expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
+  }
+  await page.setViewportSize({width:1280,height:720});await demo(page);
+  await page.setViewportSize({width:375,height:667});await page.getByRole('button',{name:'Timetable',exact:true}).click();
+  const empty=await page.locator('.calendar-empty').boundingBox(),icon=await page.locator('.calendar-empty > span').boundingBox();expect(icon!.y).toBeGreaterThanOrEqual(empty!.y);
+  await page.setViewportSize({width:1280,height:720});await generate(page);
+  const panel=await page.locator('.schedule-panel').boundingBox();expect(panel!.y+panel!.height).toBeLessThanOrEqual(720);
+  expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
+});
+
 test('desktop collapse preserves an active narrow Courses panel when resizing',async({page})=>{
   await demo(page);await page.setViewportSize({width:720,height:900});await page.getByRole('button',{name:'Courses',exact:true}).click();
   await page.setViewportSize({width:1280,height:720});await page.getByRole('button',{name:'Hide courses'}).click();

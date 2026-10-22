@@ -1,8 +1,10 @@
-import {app,BrowserWindow,Menu,net,protocol,session} from 'electron';
+import {app,BrowserWindow,Menu,net,protocol,screen,session} from 'electron';
 import {join,resolve,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {registerMainIpc} from './ipc';
 import {installCloseGuard} from './close';
+import {initialWindowBounds} from './windowBounds';
+import {createRegistrationView} from './registration';
 
 protocol.registerSchemesAsPrivileged([{scheme:'ttap',privileges:{standard:true,secure:true,supportFetchAPI:true,corsEnabled:true}}]);
 const productionURL='ttap://app/index.html';
@@ -20,13 +22,13 @@ app.whenReady().then(()=>{
   session.defaultSession.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));
   session.defaultSession.setPermissionCheckHandler(()=>false);
   Menu.setApplicationMenu(null);
-  const window=new BrowserWindow({width:1440,height:940,minWidth:600,minHeight:560,title:'TTAP Planner',backgroundColor:'#f3f6fa',webPreferences:{preload:join(import.meta.dirname,'../preload/index.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true}});
+  const window=new BrowserWindow({...initialWindowBounds(screen.getPrimaryDisplay().workArea),title:'TTAP Planner',backgroundColor:'#f3f6fa',webPreferences:{preload:join(import.meta.dirname,'../preload/index.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true}});
   const devURL=!app.isPackaged?process.env.ELECTRON_RENDERER_URL:undefined;
   const trustedURL=devURL??productionURL;
   window.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   window.webContents.on('will-navigate',(event,url)=>{const target=new URL(url);target.hash='';if(target.href!==trustedURL)event.preventDefault();});
   window.webContents.on('will-attach-webview',event=>event.preventDefault());
-  registerMainIpc(window,trustedURL,installCloseGuard(window));
+  registerMainIpc(window,trustedURL,installCloseGuard(window),createRegistrationView(window));
   void window.loadURL(trustedURL);
 });
 app.on('window-all-closed',()=>app.quit());
