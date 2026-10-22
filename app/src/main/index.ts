@@ -8,12 +8,12 @@ import {createRegistrationView} from './registration';
 
 protocol.registerSchemesAsPrivileged([{scheme:'ttap',privileges:{standard:true,secure:true,supportFetchAPI:true,corsEnabled:true}}]);
 const productionURL='ttap://app/index.html';
-const csp="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'none'; font-src 'self'; connect-src 'self'; worker-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
+const csp="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self'; worker-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
 app.whenReady().then(()=>{
   const root=resolve(import.meta.dirname,'../renderer');
   protocol.handle('ttap',async request=>{
     const url=new URL(request.url);
-    if(request.method!=='GET'||url.host!=='app'||url.search||!/^\/(?:index\.html|assets\/[A-Za-z0-9_.-]+\.(?:js|css))$/.test(url.pathname))return new Response('Not found',{status:404});
+    if(request.method!=='GET'||url.host!=='app'||url.search||!/^\/(?:index\.html|assets\/[A-Za-z0-9_.-]+\.(?:js|css|png))$/.test(url.pathname))return new Response('Not found',{status:404});
     const path=resolve(root,'.'+url.pathname);
     if(!path.startsWith(root+sep))return new Response('Not found',{status:404});
     try{const result=await net.fetch(pathToFileURL(path).href);const headers=new Headers(result.headers);headers.set('Content-Security-Policy',csp);return new Response(result.body,{status:result.status,headers});}

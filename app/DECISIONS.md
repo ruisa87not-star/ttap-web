@@ -25,3 +25,20 @@ Recorded in execution order while following the approved design and plan.
 - Final: Ruling: use the already approved integration choice (fork and push this branch, no PR) instead of a new finishing menu — user approval persists and Task 8 specifies the exact action — no local merge or PR is created.
 
 Deferred minor findings: none.
+
+
+## Planner 0.3.0 — immediate checks and final image
+
+- Each immutable project edit starts the existing cancellable Worker; only results
+  belonging to the current project can render or become exportable. Compatible
+  alternative groups are searched before reporting no solution.
+- Teaching-week filtering is removed. Meeting week sets remain part of conflict
+  correctness. A shared lane layout separates equal clock times across disjoint weeks.
+- PNG is the user-facing output. Canvas draws the chosen candidate and complete
+  registration details from structured data, with wrapping and explicit image
+  bounds. Changing the chosen candidate invalidates the exported-image status.
+- Native PNG saves keep main-frame sender validation, a bounded image payload,
+  native-path selection and atomic writes. Legacy project opening and underlying
+  format adapters stay available for compatibility, without an Export project UI.
+- Manual-import screenshots use marked synthetic examples. The upstream archive
+  contains a student name/ID, so it is not bundled into the redesigned guide.

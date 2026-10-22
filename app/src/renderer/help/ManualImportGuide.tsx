@@ -1,6 +1,10 @@
+import previewImage from './images/timetable-preview.png';
+import sourceImage from './images/page-source.png';
+
 export function ManualImportGuide(){
   return <section className="manual-guide" aria-label="Manual slot import guide">
       <p>In TTAP, adding slots manually means importing the HTML from your course timetable page. Use a regular browser for the source-copying steps below. In the desktop login view, you can use Preview courses from this page instead.</p>
+      <details className="illustrated-guide"><summary>View step-by-step screenshots</summary><p>These screenshots use sample course data. The UTAR page may look different.</p><div className="guide-images"><figure><img src={previewImage} alt="Example Course Timetable Preview with course codes, groups and meeting times"/><figcaption>1. Open Course Timetable Preview after signing in. Display the courses you need.</figcaption></figure><figure><img src={sourceImage} alt="Example page-source tab showing course HTML, with Ctrl A and Ctrl C copying instructions"/><figcaption>2. In a regular browser, press Ctrl + U. In the source tab, press Ctrl + A, then Ctrl + C.</figcaption></figure></div></details>
       <ol>
         <li><strong>Log in.</strong> Sign in to the Course Registration System, then open the same page in a regular browser to copy its source.</li>
         <li><strong>Open Course Timetable Preview.</strong> Display the course timetable data you want to arrange.</li>

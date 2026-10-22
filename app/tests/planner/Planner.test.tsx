@@ -18,41 +18,65 @@ it('hides and reopens the course sidebar without changing selected classes',asyn
   expect(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'})).toBeChecked();expect(screen.getByLabelText('Lecture for TEST1013')).toHaveValue(makeProject().courses[0].classes[0].id);
 });
 it('generates a timetable, then invalidates it after a condition change',async()=>{
-  render(<Harness/>);await userEvent.click(screen.getByRole('button',{name:'Generate'}));
+  render(<Harness/>);
   const table=screen.getByRole('region',{name:'Weekly timetable'});expect(await within(table).findAllByText('TEST1013')).toHaveLength(2);
   await userEvent.click(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'}));
   expect(within(table).queryAllByText('TEST1013')).toHaveLength(0);expect(screen.getByRole('button',{name:'Generate'})).toBeDisabled();
 });
 it('keeps cancel available and ignores results after a condition change',async()=>{
   let finish!:(r:SolveResult)=>void;solver.solve.mockImplementation(()=>new Promise(resolve=>finish=resolve));
-  render(<Harness/>);await userEvent.click(screen.getByRole('button',{name:'Generate'}));expect(screen.getByRole('button',{name:'Cancel calculation'})).toBeEnabled();
+  render(<Harness/>);expect(screen.getByRole('button',{name:'Cancel calculation'})).toBeEnabled();
   await userEvent.click(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'}));
   await act(async()=>finish(solveTimetables({courses:makeProject().courses,selection:makeProject().selection})));
   expect(within(screen.getByRole('region',{name:'Weekly timetable'})).queryAllByText('TEST1013')).toHaveLength(0);
 });
 it('cancels without showing an error',async()=>{
   solver.solve.mockImplementation(()=>new Promise(()=>{}));render(<Harness/>);
-  await userEvent.click(screen.getByRole('button',{name:'Generate'}));await userEvent.click(screen.getByRole('button',{name:'Cancel calculation'}));expect(screen.queryByRole('alert')).toBeNull();
+  await userEvent.click(screen.getByRole('button',{name:'Cancel calculation'}));expect(screen.queryByRole('alert')).toBeNull();
 });
 it('passes a fixed class and unavailable time to the solver and reports no solution',async()=>{
   render(<Harness/>);await userEvent.selectOptions(screen.getByLabelText('Lecture for TEST1013'),makeProject().courses[0].classes[0].id);
-  await userEvent.click(screen.getByRole('button',{name:'Add unavailable time'}));await userEvent.click(screen.getByRole('button',{name:'Generate'}));
+  await userEvent.click(screen.getByRole('button',{name:'Add unavailable time'}));
   expect(await screen.findByText('No timetable matches your current conditions.')).toBeInTheDocument();
   expect(solver.solve.mock.calls.at(-1)?.[0].selection.lockedClassIds).toHaveLength(1);
 });
 it('shows a limit notice instead of claiming a complete result count',async()=>{
   solver.solve.mockResolvedValue({solutions:[{classIds:makeProject().courses[0].classes.map(c=>c.id)}],truncated:true});render(<Harness/>);
-  await userEvent.click(screen.getByRole('button',{name:'Generate'}));expect(await screen.findByText(/Showing the first 500/)).toBeInTheDocument();
+  expect(await screen.findByText(/Showing the first 500/)).toBeInTheDocument();
 });
-it('shows meetings only in their teaching week',()=>{
+it('shows every meeting without a teaching-week filter, including alternating weeks',()=>{
   const a=makeClass({meetings:[makeMeeting({weeks:[1]})]});const b=makeClass({courseCode:'OTHER1013',meetings:[makeMeeting({weeks:[2]})]});
   const courses=[{code:'TEST1013',name:'One',classes:[a]},{code:'OTHER1013',name:'Two',classes:[b]}];
   const props={courses,timetable:{classIds:[a.id,b.id]}};
-  const view=render(<TimetableView {...props} week={1}/>);expect(screen.getByText('TEST1013')).toBeInTheDocument();expect(screen.queryByText('OTHER1013')).toBeNull();
-  view.rerender(<TimetableView {...props} week={2}/>);expect(screen.queryByText('TEST1013')).toBeNull();expect(screen.getByText('OTHER1013')).toBeInTheDocument();
+  render(<TimetableView {...props}/>);expect(screen.getByText('TEST1013')).toBeInTheDocument();expect(screen.getByText('OTHER1013')).toBeInTheDocument();
+  const buttons=screen.getByRole('region',{name:'Monday'}).querySelectorAll('button');
+  expect(buttons[0].style.top).not.toBe(buttons[1].style.top);
+});
+it('checks selected courses immediately and reports incompatible combinations',async()=>{
+  const p=makeProject();p.selection.courseCodes=[];
+  p.courses.push({code:'OTHER1013',name:'Conflicting course',classes:[makeClass({courseCode:'OTHER1013'})]});
+  render(<Harness initial={p}/>);
+  await userEvent.click(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'}));
+  expect(await screen.findByText('No clashes. Your selected courses fit together.')).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('checkbox',{name:'OTHER1013 Conflicting course'}));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Clash detected');
+  expect(screen.getByRole('alert')).toHaveTextContent('OTHER1013');
+  expect(within(screen.getByRole('region',{name:'Weekly timetable'})).queryByText('TEST1013')).toBeNull();
+  await userEvent.click(screen.getByRole('checkbox',{name:'OTHER1013 Conflicting course'}));
+  expect(await screen.findByText('No clashes. Your selected courses fit together.')).toBeInTheDocument();
+  expect(screen.queryByLabelText('Teaching week')).toBeNull();
+});
+it('finds a compatible alternative immediately instead of rejecting an overlapping first group',async()=>{
+  const p=makeProject();p.courses[0].classes.push(makeClass({number:'3',group:'2',meetings:[makeMeeting({day:3})]}));
+  p.courses.push({code:'OTHER1013',name:'Other',classes:[makeClass({courseCode:'OTHER1013'})]});
+  render(<Harness initial={p}/>);await userEvent.click(screen.getByRole('checkbox',{name:'OTHER1013 Other'}));
+  expect(await screen.findByText('No clashes. Your selected courses fit together.')).toBeInTheDocument();
+  expect(screen.getByRole('region',{name:'Wednesday'}).querySelector('button')).not.toBeNull();
+  await userEvent.selectOptions(screen.getByLabelText('Lecture for TEST1013'),p.courses[0].classes[0].id);
+  expect(await screen.findByRole('alert')).toHaveTextContent('Clash detected');
 });
 it('previews visual time constraints before applying them to the project',async()=>{
-  render(<Harness/>);await userEvent.click(screen.getByRole('button',{name:'Generate'}));await screen.findByText('Option 1 of 1');
+  render(<Harness/>);await screen.findByText('Option 1 of 1');
   await userEvent.click(screen.getByRole('button',{name:'Set time constraint'}));const dialog=screen.getByRole('dialog',{name:'Set time constraint'});
   await userEvent.click(within(dialog).getByRole('button',{name:'Monday 09:00–09:30'}));expect(dialog).toHaveTextContent('0 of 1 shown options remain');
   await userEvent.click(within(dialog).getByRole('button',{name:'Apply constraints'}));expect(screen.queryByRole('dialog')).toBeNull();expect(screen.getByRole('button',{name:'Remove unavailable time 1'})).toBeInTheDocument();

@@ -1,7 +1,8 @@
 # TTAP Planner — web and Windows
 
 A redesigned UTAR timetable planner. The web app and Windows Electron app share
-the same interface, HTML importer, solver and versioned `.ttap.json` project files.
+the same interface, HTML importer, solver and PNG registration-guide export.
+Existing version-1 `.ttap.json` files can still be opened for compatibility.
 The original application remains in the repository root; install the new app
 independently, without running the root package installation.
 
@@ -10,14 +11,16 @@ in the [GitHub fork](https://github.com/ruisa87not-star/ttap-web).
 
 ![Packaged Windows timetable planner](docs/planner.png)
 
-The compact workspace keeps **Generate** beside the selected course count, above
-the timetable. On smaller screens, switch between **Courses**, **Timetable** and
-**Conditions**; the same Generate/Cancel action is available from every panel.
+Selecting courses or changing a group checks clashes and updates timetable options
+automatically. The status stays visible from every panel, with **Generate** for a
+manual retry and **Cancel calculation** for a long search. On smaller screens,
+switch between **Courses**, **Timetable** and **Conditions**.
 Course names use 14px text, with 12px course codes and 11px metadata in the calendar.
 The calendar has **Mon–Sun rows down the left and a horizontal 08:00–18:00 time
 axis across the top**. It scales to the available panel height and width, keeping
-the whole week visible even before selecting courses. Earlier/later classes extend
-the time range. Select a class for its full details when compact cells truncate text.
+the whole week visible for ordinary schedules, even before selecting courses.
+Many alternating-week meetings use readable lanes and internal vertical scrolling.
+Earlier/later classes extend the time range. Select a class for its full details when compact cells truncate text.
 The application frame fits the available viewport. Long course lists, import
 instructions and timetable content scroll inside their own regions. Windows
 startup maximizes the app; restored dimensions and minimum size are limited to
@@ -27,7 +30,7 @@ the display's work area.
 
 On Windows, double-click **[Start-TTAP.cmd](../Start-TTAP.cmd)** in the repository
 root to open the packaged desktop app. The header and window title identify this
-release as **Planner 0.2.0**. The launcher checks the package against source and
+release as **Planner 0.3.0**. The launcher checks the package against source and
 build-input modification times. If it is missing or older, it rebuilds before
 opening, using the installed Node.js and project dependencies. Build failures
 stay visible and do not fall back to the older package. A current package can
@@ -85,7 +88,9 @@ to import, or reopen it from the top-right **Tutorial** button at any time.
    `.html` / `.htm` files. Choose
    **Choose HTML files**, drop multiple pages together, or use **Paste HTML**.
    The instructions explain viewing the source with Ctrl+U,
-   copying it and previewing the import. Save and import all pages together
+   copying it and previewing the import. **View step-by-step screenshots** opens
+   illustrated examples made with sample data, without student account details.
+   Save and import all pages together
    when the timetable is paginated; a new import replaces the previous courses.
    **Try demo** directly opens the timetable with an 18-course sample catalog,
    multiple lecture/tutorial groups and no preselection. Demo times are synthetic;
@@ -99,23 +104,33 @@ to import, or reopen it from the top-right **Tutorial** button at any time.
    changing your choices. Narrow layouts use the three panel buttons.
    **Set time constraint** opens a half-hour grid showing availability across the
    generated options. Toggle cells, review how many shown options remain, apply,
-   then Generate again. Constraints apply across all teaching weeks; the preview
-   describes the currently generated options, including when the solver is capped.
-4. Choose **Generate**. Browse candidates and teaching weeks; select a class in
-   the timetable for all its meetings, rooms and weeks. A new condition invalidates
-   the previous results. **Cancel calculation** stops the Worker immediately.
-   **Show summary** displays the selected courses, assigned groups/rooms and total
-   credit hours. If any selected course omits credits, the total is marked Unknown.
-5. Choose **Export project**. Desktop uses a native save dialog and writes the
-   file atomically. Web starts a browser download: confirm **I kept the file**
-   only after retaining it. A download gesture alone does not prove a disk save.
-6. Open the same `.ttap.json` file in either version. Courses, fixed classes and
-   unavailable times are restored. Generate again to obtain equivalent candidates.
+   and the app automatically searches again. Constraints apply across all teaching
+   weeks; the preview describes the currently generated options, including when
+   the solver is capped.
+4. Browse the compatible timetable options. Clashes are checked immediately after
+   every course, group or constraint edit; if no combination fits, a visible alert
+   lists the selected courses and asks you to change a group, course or unavailable
+   time. Old results are cleared while checking. **Cancel calculation** stops the
+   Worker immediately. **Show summary** displays selected courses, groups/rooms
+   and total credits (Unknown if any selected course omits credits).
+   All class meetings are displayed together, with separate lanes for meetings
+   occupying the same clock time on different weeks. There is no teaching-week
+   selector. Week data remains part of clash checking and class details.
+5. Choose **Export image** after selecting a compatible timetable. The PNG contains
+   the horizontal weekly timetable, full course names, lecture/tutorial/practical
+   groups, class numbers, rooms, meeting times and weeks, total credit hours and
+   instructions for completing registration in UTAR. Desktop uses an atomic native save; web
+   downloads `my-timetable.png` and asks you to confirm **I kept the file**.
+   See the [sample registration image](docs/registration-guide.png).
+   No project export is required. The PNG is a final registration reference,
+   rather than an editable project file.
 
-Dirty projects prompt before replacement or desktop close. A failed/cancelled
-export preserves the current work. Changes made while saving remain dirty. The
-browser warns before leaving dirty work; browser/OS shutdown can still interrupt
-the application, so export important work regularly.
+The export button is disabled while checking, when no course is selected or when
+there is no compatible timetable. Selecting another timetable option marks the
+image as unexported again. Replacement and desktop close prompt for any unexported
+changes. Failed/cancelled saves preserve the current plan; edits or option changes
+made during an asynchronous export remain unexported. The browser warns before
+leaving unexported work.
 
 The top-left **Back** button returns to the previous in-app view. Returning to
 import or replaying the tutorial retains the current project and generated
@@ -144,13 +159,17 @@ An actual capture of the unauthenticated embedded UTAR content is in
 - Meetings clash only when day, time and teaching weeks overlap. Adjacent times
   do not clash. Every class's meetings are selected together.
 - Projects contain input data and conditions, not generated candidates or the
-  currently viewed candidate/week. Schema version 1 is supported.
+  currently viewed candidate. Legacy schema version 1 can still be opened. New
+  exports use PNG; images cannot be reopened as editable projects.
 - Historical UTAR student table formats (with/without Class Mode) and archived
   solver examples are covered. **A current real UTAR export has not been supplied
   or verified.** Unrecognized layouts produce import notes. Do not mix terms:
   term metadata is not validated, and duplicate/subset class rows can merge.
-- Imported HTML is parsed as data, never rendered. Scripts, images and frames
-  are blocked by CSP. The app does not log in, auto-register courses, upload
+- PNG exports are bounded to **10 MiB**, 16,384 pixels per side and 24 million
+  pixels. Large course/detail sets produce an explicit error rather than a clipped
+  guide. Guide images are bundled local assets.
+- Imported HTML is parsed as data, never rendered. Its scripts, images and frames
+  never enter the application DOM. The app does not log in, auto-register courses, upload
   schedules, synchronize to a cloud, or publish a website.
 
 ## Verification

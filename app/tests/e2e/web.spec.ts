@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {demo,configure,generate,downloadProject,openWebProject,readProject,expectCandidate,difficultProject,expectPrimaryActionInViewport,schoolDayProject,expectSchoolDayInViewport} from './helpers';
+import {demo,configure,generate,downloadImage,openWebProject,readProject,expectCandidate,difficultProject,expectPrimaryActionInViewport,schoolDayProject,expectSchoolDayInViewport} from './helpers';
 
 test.beforeEach(async({page})=>{await page.route('https://unitreg.utar.edu.my/**',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><h1>UTAR embedded test fixture</h1>'}));await page.goto('/');await page.getByRole('button',{name:'Skip tutorial'}).click();});
 
@@ -14,7 +14,7 @@ test('Monday–Sunday rows and horizontal 08:00–18:00 fit after resizing',asyn
   await page.getByRole('region',{name:'Friday',exact:true}).getByRole('button').click();await expect(page.locator('.class-details').getByText('Full school day',{exact:true})).toBeVisible();await expectSchoolDayInViewport(page);await page.getByRole('button',{name:'Close details'}).click();await expectSchoolDayInViewport(page);
   await page.setViewportSize({width:1024,height:600});
   const extended=schoolDayProject();extended.courses[0].classes[0].meetings=[{day:6,startMinute:1080,endMinute:1200,weeks:[1],room:'Evening room'}];extended.selection.blocked=[{day:7,startMinute:420,endMinute:480}];
-  const extendedPath=info.outputPath('weekend-evening.ttap.json');await writeFile(extendedPath,JSON.stringify(extended));await openWebProject(page,extendedPath);await page.getByRole('button',{name:'Generate',exact:true}).click();
+  const extendedPath=info.outputPath('weekend-evening.ttap.json');await writeFile(extendedPath,JSON.stringify(extended));await openWebProject(page,extendedPath);await page.getByRole('button',{name:'Discard changes'}).click();await expect(page.getByText('Option 1 of 1')).toBeVisible();
   await expect(page.getByRole('region',{name:'Saturday',exact:true}).getByRole('button',{name:/18:00 to 20:00/})).toBeInViewport();
   await expect(page.getByRole('region',{name:'Sunday',exact:true}).getByText('Unavailable')).toBeInViewport();
   await expect(page.locator('.time-axis').getByLabel('07:00',{exact:true})).toBeInViewport();await expect(page.locator('.time-axis').getByLabel('20:00',{exact:true})).toBeInViewport();
@@ -27,6 +27,9 @@ test('skip directly reveals a compact embedded registration and a dismissible ma
   await expect(page.frameLocator('iframe[title="UTAR Course Registration System"]').getByRole('heading',{name:'UTAR embedded test fixture'})).toBeVisible();
   const box=await page.locator('.registration-frame').boundingBox();expect(box!.width).toBeLessThanOrEqual(896);expect(box!.height).toBeLessThanOrEqual(340);await page.screenshot({path:info.outputPath('registration-home.png')});
   await page.getByRole('button',{name:'Add slots manually'}).click();const dialog=page.getByRole('dialog',{name:'Add slots manually'});await expect(dialog).toBeVisible();
+  await dialog.getByText('View step-by-step screenshots',{exact:true}).click();
+  expect(await dialog.locator('.guide-images img').evaluateAll(images=>images.length===2&&images.every(image=>(image as HTMLImageElement).complete&&(image as HTMLImageElement).naturalWidth>0))).toBe(true);
+  await page.screenshot({path:info.outputPath('illustrated-guide.png')});
   await page.getByRole('button',{name:'Paste HTML'}).click();await expect(dialog).toBeVisible();await page.mouse.click(4,4);await expect(dialog).toHaveCount(0);await expect(page.getByRole('button',{name:'Add slots manually'})).toBeFocused();
   await page.getByRole('button',{name:'Add slots manually'}).click();await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);
 });
@@ -115,14 +118,27 @@ test('imports the archived td/Mode and spanned-Remark layout with both meetings'
   await expect(page.getByText('Option 1 of 1')).toBeVisible();const timetable=page.getByRole('region',{name:'Weekly timetable'});await expect(timetable.getByRole('button',{name:/Lecture group 1, 09:00/})).toBeVisible();await expect(timetable.getByRole('button',{name:/Lecture group 1, 10:00/})).toBeVisible();
 });
 
-test('demo workflow exports and reopens courses, fixed classes, blocked time and equivalent candidates',async({page},info)=>{
-  await demo(page);await configure(page);await generate(page);
-  await page.getByRole('button',{name:'Next timetable'}).click();await expect(page.getByText('Option 2 of 2')).toBeVisible();await page.getByLabel('Teaching week').selectOption('2');
-  const path=info.outputPath('web.ttap.json');await downloadProject(page,path);const project=await readProject(path);expect(project.selection.lockedClassIds).toHaveLength(1);expect(project.selection.blocked).toEqual([{day:6,startMinute:540,endMinute:600}]);
-  await page.getByLabel('Teaching week').selectOption('1');await expectCandidate(page,project,1);
-  await openWebProject(page,path);await generate(page);await expectCandidate(page,project);await expect(page.getByRole('checkbox',{name:/^TEST2023 /})).toBeChecked();
-  await page.screenshot({path:info.outputPath('planner.png'),fullPage:true});
+test('course edits check clashes immediately and export the selected option as a PNG guide',async({page},info)=>{
+  await demo(page);await configure(page);
+  await expect(page.getByText('No clashes. Your selected courses fit together.')).toBeVisible();
+  await expect(page.getByText('Option 1 of 2')).toBeVisible();
+  await expect(page.getByRole('button',{name:'Export project'})).toHaveCount(0);await expect(page.getByLabel('Teaching week')).toHaveCount(0);
+  await page.getByRole('button',{name:'Next timetable'}).click();await expect(page.getByText('Option 2 of 2')).toBeVisible();
+  await downloadImage(page,info.outputPath('registration-guide.png'));
+  await page.getByRole('button',{name:'Previous timetable'}).click();await expect(page.getByText('Image not exported',{exact:true})).toBeVisible();
+  await page.screenshot({path:info.outputPath('planner.png')});
 });
+
+test('alternating-week meetings remain readable within a bounded calendar',async({page},info)=>{
+  const courses=Array.from({length:8},(_,i)=>{const code='ALT'+(i+1),id=JSON.stringify([code,'L','1','1']);return {code,name:'Alternating week '+(i+1),classes:[{id,courseCode:code,type:'L',number:'1',group:'1',meetings:[{day:1,startMinute:540,endMinute:600,weeks:[i+1],room:'Sample room'}]}]};});
+  const path=info.outputPath('alternating.json');await writeFile(path,JSON.stringify({schemaVersion:1,sources:[],courses,selection:{courseCodes:courses.map(c=>c.code),lockedClassIds:[],blocked:[]}}));
+  await page.setViewportSize({width:1280,height:720});await openWebProject(page,path);await expect(page.getByText('No clashes. Your selected courses fit together.')).toBeVisible();
+  for(const button of await page.getByRole('region',{name:'Monday',exact:true}).getByRole('button').all())expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(24);
+  await page.getByRole('region',{name:'Monday',exact:true}).getByRole('button',{name:/ALT8 /}).scrollIntoViewIfNeeded();await page.getByRole('region',{name:'Monday',exact:true}).getByRole('button',{name:/ALT8 /}).click();
+  await expect(page.locator('.class-details')).toContainText('Alternating week 8');
+  expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight&&document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
 test('imports multiple dropped HTML pages, without executing scripts or fetching their resources',async({page})=>{
   await page.getByRole('button',{name:'Add slots manually'}).click();
   let probes=0;page.on('request',r=>{if(r.url().includes('/import-probe'))probes++;});
@@ -141,8 +157,8 @@ test('zero results clears the calendar; cancellation permits an immediate new ca
   await demo(page);await page.getByLabel('Until').fill('18:00');await page.getByRole('button',{name:'Add unavailable time'}).click();await page.getByLabel('Lecture for TEST1013').selectOption({label:'Group 1 / #1'});
   await page.getByRole('button',{name:'Generate',exact:true}).click();await expect(page.getByText('No timetable matches your current conditions.')).toBeVisible();
   const path=info.outputPath('difficult.json');await writeFile(path,JSON.stringify(difficultProject()));await openWebProject(page,path);await page.getByRole('button',{name:'Discard changes'}).click();
-  await page.getByRole('button',{name:'Generate',exact:true}).click();await page.getByRole('button',{name:'Cancel calculation'}).click();
-  await page.getByRole('checkbox',{name:'LOAD27 Cancellation fixture 27'}).uncheck();await page.getByRole('button',{name:'Generate',exact:true}).click();await expect(page.getByText('Option 1 of 500')).toBeVisible();await expect(page.getByText(/Showing the first 500/)).toBeVisible();
+  await page.getByRole('button',{name:'Cancel calculation'}).click();
+  await page.getByRole('checkbox',{name:'LOAD27 Cancellation fixture 27'}).uncheck();await expect(page.getByText('Option 1 of 500')).toBeVisible();await expect(page.getByText(/Showing the first 500/)).toBeVisible();
 });
 test('narrow layout supports keyboard course selection and panel changes',async({page})=>{
   await page.setViewportSize({width:720,height:900});await page.getByRole('button',{name:'Try demo'}).click();

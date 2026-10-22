@@ -2,9 +2,9 @@
 import {beforeEach,expect,it,vi} from 'vitest';
 import {registerMainIpc} from '../../src/main/ipc';
 import {makeProject} from '../fixtures/projects';
-const mocks=vi.hoisted(()=>({handlers:new Map<string,Function>(),listeners:new Map<string,Function>(),open:vi.fn(),save:vi.fn(),write:vi.fn(),read:vi.fn(),html:vi.fn(),external:vi.fn(),registration:{open:vi.fn(),setBounds:vi.fn(),status:vi.fn(),reload:vi.fn(),readPage:vi.fn()}}));
+const mocks=vi.hoisted(()=>({handlers:new Map<string,Function>(),listeners:new Map<string,Function>(),open:vi.fn(),save:vi.fn(),write:vi.fn(),image:vi.fn(),read:vi.fn(),html:vi.fn(),external:vi.fn(),registration:{open:vi.fn(),setBounds:vi.fn(),status:vi.fn(),reload:vi.fn(),readPage:vi.fn()}}));
 vi.mock('electron',()=>({ipcMain:{handle:(n:string,f:Function)=>mocks.handlers.set(n,f),on:(n:string,f:Function)=>mocks.listeners.set(n,f)},dialog:{showOpenDialog:mocks.open,showSaveDialog:mocks.save},shell:{openExternal:mocks.external}}));
-vi.mock('../../src/main/files',()=>({readProjectText:mocks.read,writeProjectAtomically:mocks.write,readHtmlPaths:mocks.html}));
+vi.mock('../../src/main/files',()=>({readProjectText:mocks.read,writeProjectAtomically:mocks.write,writeImageAtomically:mocks.image,readHtmlPaths:mocks.html}));
 const frame={url:'ttap://app/index.html'};const wc={mainFrame:frame};const win={webContents:wc};const hooks={setDirty:vi.fn(),confirmClose:vi.fn()};
 const event={sender:wc,senderFrame:frame};
 const call=(n:string,e=event,...args:unknown[])=>mocks.handlers.get('ttap:'+n)!(e,...args);
@@ -34,4 +34,16 @@ it('rejects an invalid payload before opening a save dialog',async()=>{
 it('does not report success when an atomic write fails',async()=>{
   mocks.save.mockResolvedValue({canceled:false,filePath:'chosen.json'});mocks.write.mockRejectedValue(new Error('disk full'));
   expect((await call('export-project',event,makeProject())).status).toBe('error');expect(hooks.setDirty).not.toHaveBeenCalled();
+});
+const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=';
+it('saves PNG bytes only to the native chosen path, and supports cancellation',async()=>{
+  mocks.save.mockResolvedValue({canceled:true});expect(await call('export-image',event,png)).toEqual({status:'cancelled'});expect(mocks.image).not.toHaveBeenCalled();
+  mocks.save.mockResolvedValue({canceled:false,filePath:'chosen.png'});
+  expect(await call('export-image',event,png)).toEqual({status:'ok',value:{kind:'saved',name:'chosen.png'}});
+  expect(mocks.image).toHaveBeenCalledWith('chosen.png',expect.any(Uint8Array));
+});
+it('rejects malformed, oversized and untrusted image requests before opening a dialog',async()=>{
+  for(const input of [null,'file:///private.png','data:image/png;base64,PGh0bWw+', 'data:image/png;base64,'+'A'.repeat(15_000_000)])expect((await call('export-image',event,input)).status).toBe('error');
+  await expect(call('export-image',{...event,senderFrame:{...frame}},png)).rejects.toThrow(/sender/i);
+  expect(mocks.save).not.toHaveBeenCalled();expect(mocks.image).not.toHaveBeenCalled();
 });

@@ -1,7 +1,8 @@
 import {dialog,ipcMain,type BrowserWindow,type IpcMainInvokeEvent} from 'electron';
 import {basename} from 'node:path';
 import {validateProject} from '../shared/project';
-import {readHtmlPaths,readProjectText,writeProjectAtomically} from './files';
+import {readHtmlPaths,readProjectText,writeProjectAtomically,writeImageAtomically} from './files';
+import {decodePng} from '../shared/png';
 import type {FileOutcome} from '../shared/model';
 import type {RegistrationPort} from './registration';
 
@@ -35,6 +36,12 @@ export function registerMainIpc(window:BrowserWindow,trustedURL:string,hooks:{se
       await writeProjectAtomically(result.filePath,checked.value);return {status:'ok',value:{kind:'saved' as const,name:basename(result.filePath)}};
     });
   });
+  ipcMain.handle('ttap:export-image',async(event,payload:unknown)=>{verify(event);return outcome(async()=>{
+    const bytes=decodePng(payload);
+    const result=await dialog.showSaveDialog(window,{title:'Save registration guide image',defaultPath:'my-timetable.png',filters:[{name:'PNG image',extensions:['png']}]});
+    if(result.canceled||!result.filePath)return {status:'cancelled'};
+    await writeImageAtomically(result.filePath,bytes);return {status:'ok',value:{kind:'saved' as const,name:basename(result.filePath)}};
+  });});
   ipcMain.on('ttap:set-dirty',(event,value:unknown)=>{try{verify(event);if(typeof value==='boolean')hooks.setDirty(value);}catch{/* Ignore unauthorized one-way messages. */}});
   ipcMain.handle('ttap:confirm-close',async event=>{verify(event);hooks.confirmClose();});
 }

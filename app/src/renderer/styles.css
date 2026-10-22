@@ -226,7 +226,7 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 .calendar-empty p { max-width: 290px; margin: 0; }
 .calendar-scroll { max-height: clamp(280px, calc(100dvh - 370px), 680px); overflow: auto; scroll-padding-top: 44px; }
 .calendar { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-.calendar-head { display: grid; grid-template-columns: 56px minmax(0, 1fr); flex-shrink: 0; height: 36px; align-items: center; border-bottom: 1px solid var(--line); background: white; text-align: center; }
+.calendar-head { display: grid; grid-template-columns: 56px minmax(0, 1fr); flex-shrink: 0; height: 36px; align-items: center; border-bottom: 1px solid var(--line); background: white; text-align: center; position: sticky; top: 0; z-index: 2; }
 .calendar-head b { font-size: 13px; font-weight: 600; }
 .calendar-head > span { color: var(--muted); font-size: 12px; }
 .calendar-body { display: grid; grid-template-rows: repeat(7, minmax(0, 1fr)); position: relative; flex: 1; min-height: 0; }
@@ -298,6 +298,8 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 
 /* The frame stays in the viewport; only the active content area can scroll. */
 .planner { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; }
+.selection-feedback { flex-shrink: 0; padding: 7px 12px; margin-bottom: 10px; border: 1px solid #c9dfd2; border-radius: 6px; background: #f2f9f5; color: #205c3b; font-size: 13px; overflow-wrap: anywhere; max-height: 84px; overflow: auto; }
+.selection-feedback.has-clash { border-color: #edc4c4; background: #fff3f3; color: #8e2828; }
 .planner-title, .mobile-panels { flex-shrink: 0; }
 .planner-grid { flex: 1; min-height: 0; align-items: stretch; }
 .courses-panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
@@ -307,7 +309,7 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 .schedule-panel { display: flex; flex-direction: column; min-height: 0; }
 .schedule-toolbar, .result-toolbar, .calendar-note, .limit-note, .no-results { flex-shrink: 0; }
 .weekly-timetable { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
-.calendar-scroll { display: flex; flex: 1; min-height: 0; max-height: none; overflow-x: auto; overflow-y: hidden; }
+.calendar-scroll { display: flex; flex: 1; min-height: 0; max-height: none; overflow: auto; }
 .calendar-empty { flex: 1; min-height: 0; overflow: auto; justify-content: safe center; }
 .class-details { position: absolute; bottom: 0; left: 0; right: 0; z-index: 3; max-height: 80%; overflow: auto; }
 
@@ -318,6 +320,11 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 .dialog-close { position: absolute; top: 8px; right: 8px; font-size: 24px; }
 .manual-dialog .import-panel { padding: 0; border: 0; border-radius: 0; }
 .manual-guide { font-size: 13px; }
+.illustrated-guide { padding: 8px 0; }
+.guide-images { display: grid; gap: 16px; }
+.guide-images figure { margin: 0; }
+.guide-images img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
+.guide-images figcaption { padding: 8px 0; line-height: 1.6; color: var(--ink); }
 .project-dialog .actions { flex-wrap: wrap; }
 
 @media (max-width: 1100px) {
@@ -381,6 +388,11 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 }
 
 @media (max-width: 420px) {
+  .planner-title { flex-direction: row; align-items: center; gap: 6px; }
+  .planner-title h1 { font-size: 20px; }
+  .planner-actions { width: auto; gap: 6px; }
+  .planner-actions .selection-count { display: none; }
+  .planner-actions button { min-width: 90px; padding: 6px; }
   .brand-description { padding-left: 10px; font-size: 12px; }
   .brand { gap: 8px; font-size: 20px; }
   main { padding-right: 12px; padding-left: 12px; }
@@ -391,8 +403,6 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
   .schedule-toolbar { gap: 8px; padding: 8px; }
   .schedule-toolbar h2 { font-size: 18px; }
   .schedule-toolbar label { gap: 4px; font-size: 11px; }
-  .schedule-toolbar select { width: 76px; }
-  .teaching-week-label { display: none; }
   .import-panel { padding: 16px; }
   .dropzone { padding: 20px 12px; }
   .preview-count { align-items: flex-start; flex-direction: column; gap: 4px; }

@@ -1,7 +1,7 @@
 import {test,expect,_electron,type ElectronApplication} from '@playwright/test';
 import {resolve} from 'node:path';
 import {readFile,writeFile} from 'node:fs/promises';
-import {demo,configure,generate,downloadProject,openWebProject,readProject,expectCandidate,expectPrimaryActionInViewport,schoolDayProject,expectSchoolDayInViewport} from './helpers';
+import {demo,configure,generate,downloadImage,openWebProject,readProject,expectCandidate,expectPrimaryActionInViewport,schoolDayProject,expectSchoolDayInViewport} from './helpers';
 let app:ElectronApplication;
 test.beforeEach(async()=>{
   app=await _electron.launch({executablePath:resolve('release/win-unpacked/TTAP-Planner.exe')});
@@ -12,9 +12,9 @@ test.beforeEach(async()=>{
 });
 test.afterEach(async()=>{if(app){await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().forEach(w=>w.destroy())).catch(()=>{});await app.close();}});
 
-test('packaged Planner 0.2.0 fits weekday rows and horizontal 08:00–18:00',async({},info)=>{
-  const page=await app.firstWindow();await expect(page.getByText('Planner 0.2.0',{exact:true})).toBeVisible();await expect(page).toHaveTitle('TTAP Planner 0.2.0');
-  expect(await app.evaluate(({app})=>app.getVersion())).toBe('0.2.0');
+test('packaged Planner 0.3.0 fits weekday rows and horizontal 08:00–18:00',async({},info)=>{
+  const page=await app.firstWindow();await expect(page.getByText('Planner 0.3.0',{exact:true})).toBeVisible();await expect(page).toHaveTitle('TTAP Planner 0.3.0');
+  expect(await app.evaluate(({app})=>app.getVersion())).toBe('0.3.0');
   const path=info.outputPath('school-day.ttap.json');await writeFile(path,JSON.stringify(schoolDayProject()));
   await app.evaluate(({dialog},filePath)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths:[filePath]});},path);
   await page.getByRole('button',{name:'Open project'}).click();await page.getByRole('button',{name:'Generate',exact:true}).click();await expect(page.getByText('Option 1 of 1')).toBeVisible();
@@ -61,15 +61,18 @@ test('native HTML import preserves the archived spanned-Remark layout',async()=>
   await page.getByRole('button',{name:'Add slots manually'}).click();await page.getByRole('button',{name:'Choose HTML files'}).click();await expect(page.getByText('1 courses',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Use these courses'}).click();await page.getByRole('checkbox',{name:/^TEST1013 /}).check();await page.getByRole('button',{name:'Generate',exact:true}).click();
   await expect(page.getByText('Option 1 of 1')).toBeVisible();const timetable=page.getByRole('region',{name:'Weekly timetable'});await expect(timetable.getByRole('button',{name:/Lecture group 1, 09:00/})).toBeVisible();await expect(timetable.getByRole('button',{name:/Lecture group 1, 10:00/})).toBeVisible();
 });
-test('web download and native save round-trip with matching canonical candidates',async({page},info)=>{
-  await page.goto('/');await page.getByRole('button',{name:'Skip tutorial'}).click();await demo(page);await configure(page);await generate(page);const webPath=info.outputPath('from-web.ttap.json');await downloadProject(page,webPath);const original=await readProject(webPath);
-  const desktop=await app.firstWindow();await app.evaluate(({dialog},path)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths:[path]});},webPath);
-  await desktop.getByRole('button',{name:'Open project'}).click();await generate(desktop);await expectCandidate(desktop,original);
-  const nativePath=info.outputPath('from-desktop.ttap.json');await app.evaluate(({dialog},filePath)=>{dialog.showSaveDialog=async()=>({canceled:false,filePath});},nativePath);
-  await desktop.getByRole('button',{name:'Export project'}).click();await expect(desktop.getByText('Saved from-desktop.ttap.json.')).toBeVisible();expect(await readProject(nativePath)).toEqual(original);
-  await openWebProject(page,nativePath);await generate(page);await expectCandidate(page,original);
-  await desktop.screenshot({path:info.outputPath('desktop.png'),fullPage:true});
+test('web and native export real registration images and preserve cancellation protection',async({page},info)=>{
+  await page.goto('/');await page.getByRole('button',{name:'Skip tutorial'}).click();await demo(page);await configure(page);
+  await downloadImage(page,info.outputPath('from-web.png'));
+  const desktop=await app.firstWindow();await demo(desktop);await configure(desktop);await expect(desktop.getByText('Option 1 of 2')).toBeVisible();
+  const nativePath=info.outputPath('from-desktop.png');await app.evaluate(({dialog},filePath)=>{dialog.showSaveDialog=async()=>({canceled:false,filePath});},nativePath);
+  await desktop.getByRole('button',{name:'Export image'}).click();await expect(desktop.getByText('Saved from-desktop.png.')).toBeVisible();
+  const image=await app.evaluate(({nativeImage},path)=>{const image=nativeImage.createFromPath(path);return {empty:image.isEmpty(),size:image.getSize()};},nativePath);
+  expect(image.empty).toBe(false);expect(image.size.width).toBe(1600);expect(image.size.height).toBeGreaterThan(1000);
+  await desktop.getByRole('button',{name:'Next timetable'}).click();await expect(desktop.getByText('Image not exported',{exact:true})).toBeVisible();
+  await desktop.screenshot({path:info.outputPath('desktop.png')});
 });
+
 test('packaged importer cannot execute HTML or fetch its resources, and protocol rejects other files',async({},info)=>{
   const page=await app.firstWindow();let probes=0;page.on('request',r=>{if(r.url().includes('import-probe'))probes++;});
   const path=info.outputPath('untrusted.html');const html=await readFile('tests/fixtures/student-v2.html','utf8');
@@ -83,7 +86,7 @@ test('packaged demo, native HTML picker and cancelled save preserve dirty-close 
   await app.evaluate(({dialog},filePaths)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths});dialog.showSaveDialog=async()=>({canceled:true,filePath:''});},paths);
   await page.getByRole('button',{name:'Add slots manually'}).click();await page.getByRole('button',{name:'Choose HTML files'}).click();await expect(page.getByText('2 courses',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Use these courses'}).click();await page.getByRole('checkbox',{name:/^TEST1013 /}).check();
   await page.getByRole('button',{name:'Generate',exact:true}).click();await expect(page.getByRole('region',{name:'Weekly timetable'})).toContainText('TEST1013');
-  await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].close());await page.getByRole('button',{name:'Export and continue'}).click();await expect(page.getByRole('dialog',{name:'Keep your changes?'})).toBeVisible();await page.getByRole('button',{name:'Cancel',exact:true}).click();await expect(page.getByText('Unsaved changes')).toBeVisible();
+  await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].close());await page.getByRole('button',{name:'Export and continue'}).click();await expect(page.getByRole('dialog',{name:'Keep your changes?'})).toBeVisible();await page.getByRole('button',{name:'Cancel',exact:true}).click();await expect(page.getByText('Image not exported')).toBeVisible();
   const prefs=await app.evaluate(({BrowserWindow})=>{const wc=BrowserWindow.getAllWindows()[0].webContents as Electron.WebContents&{getLastWebPreferences:()=>Electron.WebPreferences};const p=wc.getLastWebPreferences();return {sandbox:p.sandbox,contextIsolation:p.contextIsolation,nodeIntegration:p.nodeIntegration,webSecurity:p.webSecurity};});expect(prefs).toEqual({sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true});
-  expect(await page.evaluate(()=>({require:typeof Reflect.get(window,'require'),process:typeof Reflect.get(window,'process'),bridge:Object.keys(window.ttap??{}).sort()}))).toEqual({require:'undefined',process:'undefined',bridge:['confirmClose','exportProject','getRegistrationStatus','onCloseRequested','openProject','openRegistration','pickHtml','readRegistrationPage','reloadRegistration','setDirty','setRegistrationBounds']});
+  expect(await page.evaluate(()=>({require:typeof Reflect.get(window,'require'),process:typeof Reflect.get(window,'process'),bridge:Object.keys(window.ttap??{}).sort()}))).toEqual({require:'undefined',process:'undefined',bridge:['confirmClose','exportImage','exportProject','getRegistrationStatus','onCloseRequested','openProject','openRegistration','pickHtml','readRegistrationPage','reloadRegistration','setDirty','setRegistrationBounds']});
 });

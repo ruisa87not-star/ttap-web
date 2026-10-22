@@ -42,11 +42,15 @@ export async function expectSchoolDayInViewport(page:Page){
   expect(friday!.x).toBeGreaterThan(monday!.x);expect(friday!.y).toBeGreaterThan(monday!.y);
   expect(await page.locator('.calendar-scroll').evaluate(e=>e.scrollWidth<=e.clientWidth+1)).toBe(true);
   expect(frame!.y+frame!.height).toBeLessThanOrEqual(await page.evaluate(()=>innerHeight));
-  const week=await page.getByLabel('Teaching week').boundingBox();expect(week!.x+week!.width).toBeLessThanOrEqual(await page.evaluate(()=>innerWidth));
+  await expect(page.getByLabel('Teaching week')).toHaveCount(0);
 }
-export async function downloadProject(page:Page,path:string){
-  const event=page.waitForEvent('download');await page.getByRole('button',{name:'Export project'}).click();await (await event).saveAs(path);
-  await page.getByRole('button',{name:'I kept the file'}).click();await expect(page.getByText('Project is up to date')).toBeVisible();
+export async function expectPng(path:string){
+  const png=await readFile(path);expect([...png.subarray(0,8)]).toEqual([137,80,78,71,13,10,26,10]);
+  expect(png.readUInt32BE(16)).toBe(1600);expect(png.readUInt32BE(20)).toBeGreaterThan(1000);expect(png.length).toBeGreaterThan(20000);
+}
+export async function downloadImage(page:Page,path:string){
+  const event=page.waitForEvent('download');await page.getByRole('button',{name:'Export image'}).click();await (await event).saveAs(path);
+  await page.getByRole('button',{name:'I kept the file'}).click();await expect(page.getByText('Image exported',{exact:true})).toBeVisible();await expectPng(path);
 }
 export async function openWebProject(page:Page,path:string){const event=page.waitForEvent('filechooser');await page.getByRole('button',{name:'Open project'}).click();await (await event).setFiles(path);}
 export async function readProject(path:string):Promise<Project>{const result=decodeProject(await readFile(path,'utf8'));if(!result.ok)throw new Error(result.errors.join(' '));return result.value;}

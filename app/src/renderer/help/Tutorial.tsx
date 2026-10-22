@@ -3,7 +3,7 @@ import {useState} from 'react';
 const steps=[
   {title:'Get your course data.',body:null},
   {title:'Choose your courses and free time.',body:<><p>Select courses in the sidebar. Leave each lecture, tutorial or practical on <strong>Any group</strong>, or choose a specific group.</p><p>Use <strong>Hide courses</strong> to give the timetable more room. Add your unavailable times under <strong>Conditions</strong>. On smaller screens, use the three panel buttons.</p></>},
-  {title:'Compare your options, then save.',body:<><p>Choose <strong>Generate</strong>, browse the timetable options and switch teaching weeks. Select a class to see all its meetings and rooms.</p><p>Use <strong>Export project</strong> to keep your choices and open them later in either version. Complete your actual course registration on the UTAR website.</p></>},
+  {title:'Compare your options, then save.',body:<><p>Clashes are checked as soon as you select a course or change a group. Browse the compatible timetable options. Select a class to see all its meetings and rooms.</p><p>Use <strong>Export image</strong> to save your timetable, chosen groups and registration instructions in one PNG. Follow that image to complete your actual course registration on the UTAR website.</p></>},
 ];
 
 export function Tutorial({onDone}:{onDone:()=>void}){

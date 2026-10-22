@@ -23,7 +23,7 @@ it('returns from planner to import and back without losing selection or generate
   await userEvent.click(screen.getByRole('button',{name:'Try demo'}));
   expect(screen.getAllByRole('checkbox').length).toBeGreaterThan(15);
   expect(within(screen.getByRole('region',{name:'Weekly timetable'})).getByText('Sun',{exact:true})).toBeVisible();
-  await userEvent.click(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'}));await userEvent.click(screen.getByRole('button',{name:'Generate'}));
+  await userEvent.click(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'}));
   expect(await screen.findByText('Option 1 of 2')).toBeVisible();
   await userEvent.click(screen.getByRole('button',{name:'Go back'}));expect(screen.getByRole('region',{name:'Integrated course registration'})).toBeVisible();
   expect(screen.getByRole('heading',{name:'Import courses.'})).toHaveFocus();
@@ -37,7 +37,7 @@ it('opens manual slots in a floating dialog and dismisses it by clicking the bac
   expect(screen.queryByRole('dialog')).toBeNull();await userEvent.click(screen.getByRole('button',{name:'Add slots manually'}));
   const dialog=screen.getByRole('dialog',{name:'Add slots manually'});
   const guide=screen.getByRole('region',{name:'Manual slot import guide'});
-  expect(within(guide).getByText('Course Timetable Preview',{exact:false})).toBeVisible();expect(within(guide).getByText('Ctrl + U')).toBeVisible();expect(within(guide).getByText(/all pages together/)).toBeVisible();
+  expect(within(guide).getByText('Open Course Timetable Preview.',{exact:true})).toBeVisible();expect(within(guide).getByText('Ctrl + U')).toBeVisible();expect(within(guide).getByText(/all pages together/)).toBeVisible();
   fireEvent.pointerDown(dialog,{clientX:-1,clientY:-1});fireEvent.click(dialog,{clientX:-1,clientY:-1});expect(screen.queryByRole('dialog')).toBeNull();
   expect(screen.getByRole('region',{name:'Integrated course registration'})).toBeVisible();
 });

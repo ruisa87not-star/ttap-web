@@ -111,3 +111,19 @@ summary sizing and a specific dialog selector resolve these; browser regressions
 verify row height and dialog width. A backdrop-close focus regression was also
 reproduced and fixed by restoring the connected opener on dialog cleanup.
 No second independent review was requested.
+
+
+## Immediate clash checks and image export — Planner 0.3.0
+
+A fresh read-only reviewer inspected the changes against `65d1951`, including
+automatic Worker invalidation, current-project/candidate ownership, image save
+snapshots, bounded native PNG requests and account-free local guide assets.
+It found one P2: dividing a fixed-height weekday by many alternating-week lanes
+made compatible meetings unreadable. The eight-course browser regression failed
+with 4px meeting buttons before the fix. Minimum readable lane heights and
+internal calendar scrolling resolve it; ordinary schedules still fit all seven
+weekday rows. The focused Chromium regression passed after the fix.
+
+No additional actionable correctness, security or data-loss findings were
+reported. No second independent review was requested. The reviewer did not rerun
+the broad suite; the implementing agent runs the final gates separately.

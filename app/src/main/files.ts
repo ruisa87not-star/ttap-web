@@ -30,10 +30,14 @@ export async function readProjectText(path:string):Promise<{name:string;text:str
 }
 export async function writeProjectAtomically(path:string,project:Project):Promise<void>{
   const encoded=encodeProject(project);if(!encoded.ok)throw new Error(encoded.errors.join(' '));
+  await writeAtomically(path,encoded.value);
+}
+export async function writeImageAtomically(path:string,png:Uint8Array):Promise<void>{await writeAtomically(path,png);}
+async function writeAtomically(path:string,data:string|Uint8Array):Promise<void>{
   const temporary=join(dirname(path),`.ttap-${randomUUID()}.tmp`);
   try{
     const file=await fs.open(temporary,'wx',0o600);
-    try{await file.writeFile(encoded.value,'utf8');await file.sync();}finally{await file.close();}
+    try{await file.writeFile(data);await file.sync();}finally{await file.close();}
     await fs.rename(temporary,path);
   }finally{await fs.rm(temporary,{force:true});}
 }

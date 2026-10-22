@@ -26,7 +26,7 @@ export function TimeConstraintsDialog({courses,timetables,blocked,onApply,onCanc
       })}</div>)}
     </div></div>
     <p role="status">{remaining} of {options.length} shown options remain.{options.length===0?' Generate a timetable to compare options.':''}</p>
-    <p className="constraint-note">Apply, then Generate to search with your updated constraints. The preview counts only the options currently shown.</p>
+    <p className="constraint-note">Apply to check your updated constraints automatically. The preview counts only the options currently shown.</p>
     <div className="actions"><button onClick={onCancel}>Cancel</button><button className="primary" onClick={()=>onApply(draft)}>Apply constraints</button></div>
   </ProjectDialog>;
 }

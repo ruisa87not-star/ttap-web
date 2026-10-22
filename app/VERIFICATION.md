@@ -249,3 +249,47 @@ packaging and all **35 runtime tests** (14 Chromium, 14 Firefox, 7 packaged Wind
 Native project exchange, saved-HTML security and cancelled-save/dirty-close
 protection remain passing. User-owned reference PNGs and `suggestion/` were not
 modified or included in the change.
+
+
+## Immediate clash checks and registration images — Planner 0.3.0
+
+Selecting courses, locking a group or applying unavailable time now starts the
+existing cancellable Worker immediately. Component regressions verify no-solution
+alerts, recovery after deselection, alternative compatible groups and rejection
+of stale results. Results and the exportable candidate are tied to the exact
+current project. The Teaching Week selector is removed; week-aware conflict
+logic remains. All meetings display together. Many alternating-week lanes use
+readable minimum heights and internal scrolling, without enlarging the app frame.
+The independent review found and confirmed this lane-height regression; the
+eight-course runtime check failed before the fix and passes afterward.
+
+Export image produces an actual 1600px-wide PNG containing the horizontal weekly
+timetable, full course names, chosen groups and class numbers, rooms, meeting
+times/weeks, credits and registration steps. Unit checks verify the rendered
+content and rejection of incomplete selections. Browser tests save PNG
+downloads to disk and check format/dimensions; packaged Windows tests decode the
+saved image with nativeImage. The UI has no Export project action. Legacy project
+opening remains supported. Export is disabled for empty, checking or conflicting
+selections; changing timetable option invalidates exported status. Cancelled
+saves, downloaded-file confirmation and edits during saves retain dirty protection.
+
+Manual import now has expandable, bundled screenshots created from synthetic
+course data. They are explicitly labelled as examples. The archived upstream
+image containing account information is not shipped. Browser runtime checks
+verify the images actually load under the production CSP. The source screenshots
+can be regenerated with PLAYWRIGHT_BROWSERS_PATH=0 and
+`node scripts/capture-import-guide.mjs` from app/.
+
+Fresh final validation passed strict types, **134 unit/component tests in 22
+files**, production web/Electron builds, Windows packaging, and **37 runtime
+tests**: 15 Chromium, 15 Firefox, 7 packaged Windows. Geometry checks include
+1280×720, 1024×600, 375×667 and 320×667, weekday rows, horizontal hour labels and
+weekend/evening times. Native tests confirm version 0.3.0 and maximized startup.
+The root launcher freshness check reports Current for the new package.
+
+[docs/planner.png](docs/planner.png), [docs/registration-guide.png](docs/registration-guide.png),
+[docs/illustrated-import.png](docs/illustrated-import.png), and
+[docs/school-day-mobile.png](docs/school-day-mobile.png) are captured final outputs
+using synthetic data. No authenticated UTAR account flow was submitted or verified
+in this revision. No new dependencies were added. Existing user-owned root
+reference images and suggestion/ were untouched and excluded from the commit.
