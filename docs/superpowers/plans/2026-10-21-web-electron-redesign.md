@@ -192,7 +192,7 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
 
 **Interfaces:** 使用正式 `dist-web`、封裝的 Windows executable、同一組 fixtures 及專案檔；不依賴 dev server 才有的能力。新增 `test:e2e:web`（Chromium、Firefox）、`test:e2e:desktop`（Windows Electron）、`check`（型別及單元測試）scripts。
 
-- [ ] **Step 1:** 撰寫 e2e：載入範例 → 選兩科 → 固定班別 → 加入封鎖 → Generate → 切候選／週次 → 匯出 → 重新開啟。加入多檔拖入、無效 HTML、零結果、取消後立即重算、窄視窗鍵盤操作，以及匯入 HTML 的 script / image 不執行／不連網。網頁下載檔帶入 Electron，Electron 檔案再由網頁開啟，斷言課程、條件及 canonical classIds 相等。桌面用實際檔案 I/O，僅在原生對話框選擇位置的邊界提供測試控制。
+- [x] **Step 1:** 撰寫 e2e：載入範例 → 選兩科 → 固定班別 → 加入封鎖 → Generate → 切候選／週次 → 匯出 → 重新開啟。加入多檔拖入、無效 HTML、零結果、取消後立即重算、窄視窗鍵盤操作，以及匯入 HTML 的 script / image 不執行／不連網。網頁下載檔帶入 Electron，Electron 檔案再由網頁開啟，斷言課程、條件及 canonical classIds 相等。桌面用實際檔案 I/O，僅在原生對話框選擇位置的邊界提供測試控制。
   共用範例入口的 accessible name 固定為 Try demo，開啟後選科不預設全部勾選；兩個版本都使用相同的 smoke 斷言：
   ```ts
   test('demoCanGenerateATimetable', async ({ page }) => {
@@ -204,10 +204,10 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
   });
   ```
   Electron 測試使用 firstWindow() 得到 page 後，沿用此段從 Try demo 起的操作，不導覽到 `/`。
-- [ ] **Step 2:** 執行兩組 e2e 記錄失敗；已有功能通過的案例保持通過，新增失敗僅定位並修正本計畫範圍內的問題。若無 Firefox runtime 或桌面執行能力，保留測試並標記尚未驗證，不把它當成已通過。
-- [ ] **Step 3:** 完成必要修正與說明文件：Node / npm 前提、`npm --prefix app ci`、所有 dev / build / test 命令、輸出位置、匯入步驟、10 MiB 與 500 方案限制、網頁下載語意、未驗證的現行 UTAR 版型。說明保留舊版的入口，新增應用不要求根目錄 npm install；正式站點發佈仍不在本次範圍。
-- [ ] **Step 4:** 一次執行 check、兩個正式建置、Windows 封裝及兩組 e2e；全部檢視結果。檢查網頁 bundle 沒有 Electron／Node builtins／require，static preview 與 Windows app 的主要流程通過，`git diff --check` 無錯誤。只有新變更或失敗才重跑相關檢查。
-- [ ] **Step 5:** 審閱完整 diff、檢查來源與 MIT 聲明，提交 `test: verify web and Windows planner workflows`。紀錄實際驗證結果及未驗證項目，不能用單元測試替代 runtime 驗證。
+- [x] **Step 2:** 執行兩組 e2e 記錄失敗；已有功能通過的案例保持通過，新增失敗僅定位並修正本計畫範圍內的問題。若無 Firefox runtime 或桌面執行能力，保留測試並標記尚未驗證，不把它當成已通過。
+- [x] **Step 3:** 完成必要修正與說明文件：Node / npm 前提、`npm --prefix app ci`、所有 dev / build / test 命令、輸出位置、匯入步驟、10 MiB 與 500 方案限制、網頁下載語意、未驗證的現行 UTAR 版型。說明保留舊版的入口，新增應用不要求根目錄 npm install；正式站點發佈仍不在本次範圍。
+- [x] **Step 4:** 一次執行 check、兩個正式建置、Windows 封裝及兩組 e2e；全部檢視結果。檢查網頁 bundle 沒有 Electron／Node builtins／require，static preview 與 Windows app 的主要流程通過，`git diff --check` 無錯誤。只有新變更或失敗才重跑相關檢查。
+- [x] **Step 5:** 審閱完整 diff、檢查來源與 MIT 聲明，提交 `test: verify web and Windows planner workflows`。紀錄實際驗證結果及未驗證項目，不能用單元測試替代 runtime 驗證。
 
 ## Task 8: 建立真正的 GitHub fork 並保存成果
 

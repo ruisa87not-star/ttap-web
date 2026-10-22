@@ -1,5 +1,20 @@
 # [Timetable Arranging Program - Web (TTAP)](https://github.com/wongjiahau/ttap-web)
 
+## New web and Windows planner
+
+The redesigned application is in [`app/`](app/README.md). It shares a React/TypeScript
+interface and solver between the browser and Windows Electron, imports UTAR HTML,
+and exchanges portable `.ttap.json` files. From this repository root:
+
+```sh
+npm --prefix app ci
+npm --prefix app run dev:web
+# or: npm --prefix app run dev:desktop
+```
+
+See [`app/README.md`](app/README.md) for builds, tests, outputs and compatibility
+limits. The original source and its instructions below remain available.
+
 ## Special thanks to
 
 - My parents (for raising me)

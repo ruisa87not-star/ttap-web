@@ -9,6 +9,7 @@ files:
   - package.json
   - LICENSE
   - UPSTREAM.md
+  - THIRD_PARTY_NOTICES.txt
   - '!node_modules/**'
 win:
   target: dir

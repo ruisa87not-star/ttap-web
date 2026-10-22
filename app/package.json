@@ -17,7 +17,12 @@
     "preview:web": "vite preview",
     "dev:desktop": "electron-vite dev",
     "build:desktop": "electron-vite build",
-    "package:win": "npm run build:desktop && electron-builder --win --dir"
+    "package:win": "npm run build:desktop && electron-builder --win --dir",
+    "test:e2e:web": "node scripts/playwright.mjs test --project=web-chromium --project=web-firefox",
+    "test:e2e:desktop": "node scripts/playwright.mjs test --project=desktop",
+    "check": "npm run typecheck && npm test",
+    "install:browsers": "node scripts/playwright.mjs install chromium firefox",
+    "test:e2e": "node scripts/playwright.mjs test"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

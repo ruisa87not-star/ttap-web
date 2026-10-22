@@ -29,3 +29,10 @@ Framework references: [React createRoot](https://react.dev/reference/react-dom/c
 [effect cleanup](https://react.dev/reference/react/useEffect),
 [Vite workers](https://vite.dev/guide/features.html#web-workers),
 [Electron security](https://www.electronjs.org/docs/latest/tutorial/security).
+
+Desktop boundaries follow [Electron protocol registration](https://www.electronjs.org/docs/latest/api/protocol):
+the standard, secure `ttap` scheme is registered before app readiness, serves only
+packaged index/JS/CSS resources, and retains CSP. Sandboxed CommonJS preload exposes
+six named capabilities; native dialog results alone supply filesystem paths.
+Packaging uses the documented [electronDist option](https://www.electron.build/docs/api/electron-builder.interface.configuration/)
+to reuse the official installed runtime on Windows.
