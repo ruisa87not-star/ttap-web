@@ -8,7 +8,7 @@
 
 **Tech Stack:** React、TypeScript、Vite、Electron、electron-vite、electron-builder；Vitest、jsdom、Testing Library、Playwright。UI 使用 CSS 與原生表單控制項，不新增 UI 或狀態管理框架。
 
-**Spec:** [2026-10-21-electron-redesign-design.md](../specs/2026-10-21-electron-redesign-design.md)，使用者已於 2026-10-21 確認。計畫目前待審閱及選擇執行方式；不得把設計確認當作本計畫已確認。
+**Spec:** [2026-10-21-electron-redesign-design.md](../specs/2026-10-21-electron-redesign-design.md)。使用者已確認設計與本計畫，並選擇 Native 循序實作，最後獨立審閱。
 
 ## Global Constraints
 
@@ -67,7 +67,7 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
 
 **Interfaces:** Produces 上述型別與 `MAX_IMPORT_BYTES = 10 * 1024 * 1024`、`MAX_SOLUTIONS = 500`、`validateCourses(value: unknown): Result<Course[]>`、`validateProject(value: unknown): Result<Project>`、`decodeProject(text: string): Result<Project>`、`encodeProject(project: Project): Result<string>`，全部從 `shared/project.ts` 匯出。
 
-- [ ] **Step 1:** 在獨立套件設定 strict TypeScript、Vitest 與 jsdom，`test` script 使用 `vitest run`；核對當時套件的 engines / peerDependencies，採相容版本並提交 lockfile。新增 fixtures 的 `makeProject(): Project`，有一科 L/T、非空 sources 及有效 selection；加入下列測試，尚不實作 codec：
+- [x] **Step 1:** 在獨立套件設定 strict TypeScript、Vitest 與 jsdom，`test` script 使用 `vitest run`；核對當時套件的 engines / peerDependencies，採相容版本並提交 lockfile。新增 fixtures 的 `makeProject(): Project`，有一科 L/T、非空 sources 及有效 selection；加入下列測試，尚不實作 codec：
   ```ts
   const p = makeProject();
   const encoded = encodeProject(p);
@@ -79,10 +79,10 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
   expect(decodeProject('{').ok).toBe(false);
   ```
   增加具名案例 `invalidCourseReference`, `reversedTime`, `nonFiniteNumber`, `duplicateClassId`, `weekOutOfRange`, `tooLargeProject`，各斷言 `ok === false`；大小測試含多位元中文，使用 UTF-8 bytes。
-- [ ] **Step 2:** 執行 `npm --prefix app test -- tests/shared/project.test.ts`；確認因缺少 codec／驗證而失敗。
-- [ ] **Step 3:** 實作上述簽章，將格式與驗證留在純 TypeScript；固定班別必須存在且屬於已選科目，同科同類型最多固定一個班別。新增獨立 `typecheck` script；忽略 `app/node_modules/`、`app/coverage/`、`app/out/`、`app/dist-web/`、`app/release/` 及測試產物。
-- [ ] **Step 4:** 執行同一測試與 `npm --prefix app run typecheck`；預期全部通過，無舊應用依賴安裝。
-- [ ] **Step 5:** 只提交本 Task 的列出檔案，訊息 `feat: define portable timetable project format`。
+- [x] **Step 2:** 執行 `npm --prefix app test -- tests/shared/project.test.ts`；確認因缺少 codec／驗證而失敗。
+- [x] **Step 3:** 實作上述簽章，將格式與驗證留在純 TypeScript；固定班別必須存在且屬於已選科目，同科同類型最多固定一個班別。新增獨立 `typecheck` script；忽略 `app/node_modules/`、`app/coverage/`、`app/out/`、`app/dist-web/`、`app/release/` 及測試產物。
+- [x] **Step 4:** 執行同一測試與 `npm --prefix app run typecheck`；預期全部通過，無舊應用依賴安裝。
+- [x] **Step 5:** 只提交本 Task 的列出檔案，訊息 `feat: define portable timetable project format`。
 
 ## Task 2: UTAR HTML 匯入與網頁預覽
 
@@ -90,7 +90,7 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
 
 **Interfaces:** Consumes `HtmlSource`, `ImportResult`, `validateCourses`, `MAX_IMPORT_BYTES`；Produces `parseUtarHtml(sources: HtmlSource[]): ImportResult`、`readHtmlFiles(files: File[]): Promise<FileOutcome<HtmlSource[]>>`、`ImportPanel({ onConfirm }: { onConfirm: (result: ImportResult) => void })`。`App` 接受已確認的匯入資料，建立有效 Project；範例只使用合成 HTML。
 
-- [ ] **Step 1:** 依上游兩版學生解析器的 table / subRow 結構製作小型無個資 fixtures。測試兩版預期的 course code、type、group、room、classMode 和所有 meetings；`mergeDuplicatePages` 斷言重複頁不增加班別或 meetings，`sameNumberDifferentCourse` 斷言兩科保有兩個不同 ID，`tupleDelimiterCollision` 斷言不同班別欄位的分隔符組合不碰撞。另測 `orphanSubRow`、`missingMeetingCell`、`subjectToChangeHeader`、HTML entities、空白／登入頁、script / img 內容、`1-999999999` 週次回報錯誤不展開，以及時間為空和 Industrial Training 的排除提示。UI 測試空白匯入不能確認、有效匯入有統計、取消不呼叫 onConfirm。
+- [x] **Step 1:** 依上游兩版學生解析器的 table / subRow 結構製作小型無個資 fixtures。測試兩版預期的 course code、type、group、room、classMode 和所有 meetings；`mergeDuplicatePages` 斷言重複頁不增加班別或 meetings，`sameNumberDifferentCourse` 斷言兩科保有兩個不同 ID，`tupleDelimiterCollision` 斷言不同班別欄位的分隔符組合不碰撞。另測 `orphanSubRow`、`missingMeetingCell`、`subjectToChangeHeader`、HTML entities、空白／登入頁、script / img 內容、`1-999999999` 週次回報錯誤不展開，以及時間為空和 Industrial Training 的排除提示。UI 測試空白匯入不能確認、有效匯入有統計、取消不呼叫 onConfirm。
   v2 fixture 固定有科目 TEST1013、一個含兩個 meetings 的 L 班別與一個 T 班別；在 `tests/import/parseUtarHtml.test.ts` 使用 Node readFileSync 讀取 fixture：
   ```ts
   it('v2PreservesBothMeetings', () => {
@@ -100,10 +100,10 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
     expect(result.courses[0].classes.find(c => c.type === 'L')?.meetings).toHaveLength(2);
   });
   ```
-- [ ] **Step 2:** 執行 `npm --prefix app test -- tests/import`，確認因尚無解析及預覽功能而失敗。
-- [ ] **Step 3:** 移植 `src/ts/parser/parseStudentHtmlToRawSlot.ts` 與 `_v2.ts` 的表格遍歷及繼承規則，替換 innerHTML 資料讀取為 textContent，使用 Task 1 型別與標準陣列操作。以欄位／表頭辨識版型，不依年份；不確定的結構回報診斷。不完整班別整組排除，不能留下缺會議的可選班別。大小檢查先於讀檔／DOMParser。完成選檔、貼上、多檔拖入、內建範例與確認預覽；範例含 TEST1013 及 TEST2023 兩科，各有 L/T 和可行方案，不預選科目。建立 Vite 共用入口和 `dev:web`、`build:web`、`preview:web` scripts。CSP 禁止匯入 HTML 的腳本、圖片及網路資源執行；不渲染原始 HTML。
-- [ ] **Step 4:** 執行匯入測試、typecheck、`npm --prefix app run build:web`。用 `npm --prefix app run dev:web -- --host 127.0.0.1` 檢查預覽：瀏覽器不被導向桌面版下載頁，錯誤不替換目前資料。
-- [ ] **Step 5:** 提交 `feat: import UTAR course pages in the shared web app`。
+- [x] **Step 2:** 執行 `npm --prefix app test -- tests/import`，確認因尚無解析及預覽功能而失敗。
+- [x] **Step 3:** 移植 `src/ts/parser/parseStudentHtmlToRawSlot.ts` 與 `_v2.ts` 的表格遍歷及繼承規則，替換 innerHTML 資料讀取為 textContent，使用 Task 1 型別與標準陣列操作。以欄位／表頭辨識版型，不依年份；不確定的結構回報診斷。不完整班別整組排除，不能留下缺會議的可選班別。大小檢查先於讀檔／DOMParser。完成選檔、貼上、多檔拖入、內建範例與確認預覽；範例含 TEST1013 及 TEST2023 兩科，各有 L/T 和可行方案，不預選科目。建立 Vite 共用入口和 `dev:web`、`build:web`、`preview:web` scripts。CSP 禁止匯入 HTML 的腳本、圖片及網路資源執行；不渲染原始 HTML。
+- [x] **Step 4:** 執行匯入測試、typecheck、`npm --prefix app run build:web`。用 `npm --prefix app run dev:web -- --host 127.0.0.1` 檢查預覽：瀏覽器不被導向桌面版下載頁，錯誤不替換目前資料。
+- [x] **Step 5:** 提交 `feat: import UTAR course pages in the shared web app`。
 
 ## Task 3: 移植純排課核心
 
