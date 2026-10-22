@@ -1,8 +1,9 @@
-import {dialog,ipcMain,type BrowserWindow,type IpcMainInvokeEvent} from 'electron';
+import {dialog,ipcMain,shell,type BrowserWindow,type IpcMainInvokeEvent} from 'electron';
 import {basename} from 'node:path';
 import {validateProject} from '../shared/project';
 import {readHtmlPaths,readProjectText,writeProjectAtomically} from './files';
 import type {FileOutcome} from '../shared/model';
+import {UTAR_REGISTRATION_URL} from '../shared/registration';
 
 export function registerMainIpc(window:BrowserWindow,trustedURL:string,hooks:{setDirty:(dirty:boolean)=>void;confirmClose:()=>void}){
   function verify(event:Pick<IpcMainInvokeEvent,'sender'|'senderFrame'>){
@@ -13,6 +14,8 @@ export function registerMainIpc(window:BrowserWindow,trustedURL:string,hooks:{se
   async function outcome<T>(action:()=>Promise<FileOutcome<T>>):Promise<FileOutcome<T>>{
     try{return await action();}catch{return {status:'error',message:'The file operation failed. Check the file format, size (10 MiB maximum), and folder permissions.'};}
   }
+  // No renderer-supplied URL: this capability opens only the official login page.
+  ipcMain.handle('ttap:open-registration',async event=>{verify(event);await shell.openExternal(UTAR_REGISTRATION_URL);});
   ipcMain.handle('ttap:pick-html',async event=>{verify(event);return outcome(async()=>{
     const result=await dialog.showOpenDialog(window,{title:'Import UTAR schedule',properties:['openFile','multiSelections'],filters:[{name:'HTML pages',extensions:['html','htm']}]});
     return result.canceled?{status:'cancelled'}:{status:'ok',value:await readHtmlPaths(result.filePaths)};

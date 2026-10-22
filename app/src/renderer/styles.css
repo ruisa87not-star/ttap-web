@@ -16,6 +16,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { margin: 0; }
 button, input, select, textarea { font: inherit; }
 button {
@@ -54,6 +55,10 @@ p { color: var(--muted); line-height: 1.6; }
   background: var(--paper);
 }
 .brand { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 750; text-decoration: none; }
+.header-start { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.back-button { display: flex; align-items: center; gap: 6px; padding: 6px 8px; }
+.back-button span { font-size: 22px; line-height: 1; }
+.tutorial-button { padding: 6px 10px; }
 .brand-mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 6px; background: var(--amber); font-size: 25px; }
 .brand-description { margin-left: 4px; padding-left: 14px; border-left: 1px solid var(--line); color: var(--muted); font-size: 14px; font-weight: 400; }
 .local-label { color: var(--muted); font-size: 13px; }
@@ -68,6 +73,8 @@ main { max-width: 1600px; margin: auto; padding: 20px 24px 32px; }
 .app-message { margin: 12px 0; }
 .import-back { display: flex; align-items: center; gap: 16px; max-width: 920px; margin: 0 auto 20px; }
 .import-back p { margin: 0; }
+.import-back h1 { margin-bottom: 4px; font-size: 28px; }
+.import-back > button { flex-shrink: 0; }
 .error { padding: 12px; border-radius: 6px; background: #fff2f2; color: #9c2929; overflow-wrap: anywhere; }
 
 /* Import is a short path into the working timetable. */
@@ -75,6 +82,35 @@ main { max-width: 1600px; margin: auto; padding: 20px 24px 32px; }
 .welcome h1 { margin-bottom: 8px; font-size: clamp(28px, 3vw, 36px); letter-spacing: -.7px; }
 .welcome p { margin-bottom: 0; font-size: 16px; }
 .import-panel { max-width: 920px; margin: auto; padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+.registration-start { margin-bottom: 16px; padding: 16px; border-left: 3px solid var(--blue); background: #f3f7fe; }
+.registration-start p { margin-bottom: 8px; }
+.registration-start strong { display: block; color: var(--ink); }
+.registration-link a { display: inline-block; padding: 5px 0; color: var(--blue); font-weight: 600; text-underline-offset: 3px; }
+.registration-link .error { margin: 8px 0 0; }
+.manual-guide { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.manual-guide summary { padding: 6px 0; color: var(--blue); font-weight: 600; cursor: pointer; }
+.manual-guide summary:focus-visible { outline: 3px solid #d09520; outline-offset: 3px; }
+.manual-guide section { max-width: 76ch; padding-top: 12px; }
+.manual-guide ol { padding-left: 24px; line-height: 1.7; }
+.manual-guide li + li { margin-top: 12px; }
+.manual-guide p:last-child { margin-bottom: 0; }
+kbd { padding: 1px 5px; border: 1px solid #b7c7dc; border-radius: 4px; background: #f7f9fc; color: var(--ink); font-family: inherit; font-size: 13px; white-space: nowrap; }
+.tutorial { max-width: 920px; margin: 24px auto; }
+.tutorial-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.tutorial-heading h1 { margin-bottom: 8px; font-size: 32px; letter-spacing: -.5px; }
+.tutorial-heading p { margin-bottom: 0; }
+.tutorial-heading > button { flex-shrink: 0; }
+.tutorial-progress { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 8px 8px 0 0; list-style: none; overflow: hidden; }
+.tutorial-progress li { display: flex; align-items: center; gap: 10px; padding: 16px; color: var(--muted); background: #edf2f8; }
+.tutorial-progress li + li { border-left: 1px solid var(--line); }
+.tutorial-progress li[aria-current=step] { color: var(--blue); background: var(--paper); font-weight: 600; box-shadow: inset 0 3px var(--blue); }
+.tutorial-progress span { display: grid; place-items: center; flex-shrink: 0; width: 26px; height: 26px; border: 1px solid currentColor; border-radius: 50%; }
+.tutorial-step { min-height: 270px; padding: 28px 32px; border: 1px solid var(--line); border-top: 0; background: var(--paper); }
+.tutorial-step h2 { margin-bottom: 16px; font-size: 25px; }
+.tutorial-step p { max-width: 72ch; }
+.step-count { margin-bottom: 12px; font-size: 13px; }
+.tutorial-actions { display: flex; justify-content: space-between; gap: 12px; padding: 16px; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 8px 8px; background: var(--paper); }
+.tutorial-note { margin: 16px 0 0; font-size: 13px; }
 .import-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
 .import-heading h2 { margin-bottom: 6px; font-size: 23px; }
 .import-heading p { margin-bottom: 0; }
@@ -110,6 +146,10 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 .selection-count strong { color: var(--ink); font-size: 16px; }
 .planner-actions button { min-width: 120px; }
 .planner-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr) 232px; align-items: start; gap: 16px; }
+@media (min-width: 1101px) {
+  .planner-grid.courses-collapsed { grid-template-columns: minmax(0, 1fr) 232px; }
+  .planner-grid.courses-collapsed > .courses-panel { display: none; }
+}
 .courses-panel, .conditions-panel, .schedule-panel { min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
 .courses-panel, .conditions-panel { padding: 16px; }
 .schedule-panel { overflow: hidden; }
@@ -200,6 +240,7 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 .project-dialog .actions { flex-wrap: wrap; }
 
 @media (max-width: 1100px) {
+  .course-toggle { display: none; }
   .mobile-panels { display: flex; gap: 8px; margin-bottom: 16px; }
   .mobile-panels button { flex: 1; }
   .mobile-panels button[aria-pressed=true] { border-color: var(--blue); background: var(--blue); color: white; }
@@ -229,7 +270,15 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
   .preview-courses span { width: 100%; order: 2; overflow-wrap: anywhere; }
   .preview-courses small { margin-left: auto; }
   .import-back { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .tutorial { margin: 16px auto; }
+  .tutorial-heading { flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .tutorial-heading h1 { font-size: 28px; }
+  .tutorial-progress li { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; font-size: 12px; }
+  .tutorial-step { min-height: 310px; padding: 20px; }
+  .tutorial-step h2 { font-size: 23px; }
 }
+
+@media (max-width: 600px) { .brand-description { display: none; } .header-start { gap: 8px; } }
 
 @media (max-width: 420px) {
   .brand-description { padding-left: 10px; font-size: 12px; }

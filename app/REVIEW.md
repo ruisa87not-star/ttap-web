@@ -33,3 +33,23 @@ The review explicitly set aside these already approved boundaries:
 - GitHub fork/push is handled after the review fixes and verification gates.
 
 Deferred minor findings: **none**.
+
+## Guidance and navigation follow-up — 2026-10-22
+
+One fresh reviewer inspected the tutorial, official-login handoff, course sidebar
+and in-app Back changes against the five requested behaviors. The review was
+read-only and found no critical issues. Its two P2 findings were reproduced and
+fixed in one pass:
+
+| Finding | Fix | Verification |
+| --- | --- | --- |
+| Desktop collapse could hide the active mobile Courses panel after resizing | Limit collapse visibility to the desktop CSS breakpoint | Chromium and Firefox regression failed before the fix and passes after it |
+| Existing-project import view had no focus target after leaving the tutorial | Always render a focusable import heading | Component focus regression failed before the fix; unit and browser checks pass after it |
+
+The reviewer verified the fixed-URL IPC boundary and preservation of the existing
+dirty/export guards. It set aside live UTAR authentication and external service
+availability because no account was supplied. This boundary is accepted and
+recorded in [VERIFICATION.md](VERIFICATION.md): the browser handoff is covered,
+while authenticated UTAR behavior remains unverified. No second review was
+requested. The final full run passed strict types, 104 unit/component tests and
+26 runtime tests.

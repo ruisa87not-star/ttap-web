@@ -1,6 +1,7 @@
 import {contextBridge,ipcRenderer} from 'electron';
 import type {DesktopBridge} from '../shared/bridge';
 const bridge:DesktopBridge={
+  openRegistration:()=>ipcRenderer.invoke('ttap:open-registration'),
   pickHtml:()=>ipcRenderer.invoke('ttap:pick-html'),
   openProject:()=>ipcRenderer.invoke('ttap:open-project'),
   exportProject:project=>ipcRenderer.invoke('ttap:export-project',project),

@@ -11,6 +11,12 @@ const solver=vi.hoisted(()=>({solve:vi.fn(),cancel:vi.fn(),dispose:vi.fn()}));
 vi.mock('../../src/workers/SolverClient',()=>({SolverClient:class {solve=solver.solve;cancel=solver.cancel;dispose=solver.dispose;}}));
 beforeEach(()=>{vi.clearAllMocks();solver.solve.mockImplementation(async input=>solveTimetables(input));});
 function Harness({initial=makeProject()}:{initial?:Project}){const[p,setP]=useState(initial);return <Planner project={p} onChange={setP}/>;}
+it('hides and reopens the course sidebar without changing selected classes',async()=>{
+  render(<Harness/>);await userEvent.selectOptions(screen.getByLabelText('Lecture for TEST1013'),makeProject().courses[0].classes[0].id);
+  await userEvent.click(screen.getByRole('button',{name:'Hide courses'}));
+  const show=screen.getByRole('button',{name:'Show courses'});expect(show).toHaveAttribute('aria-expanded','false');await userEvent.click(show);
+  expect(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'})).toBeChecked();expect(screen.getByLabelText('Lecture for TEST1013')).toHaveValue(makeProject().courses[0].classes[0].id);
+});
 it('generates a timetable, then invalidates it after a condition change',async()=>{
   render(<Harness/>);await userEvent.click(screen.getByRole('button',{name:'Generate'}));
   const table=screen.getByRole('region',{name:'Weekly timetable'});expect(await within(table).findAllByText('TEST1013')).toHaveLength(2);

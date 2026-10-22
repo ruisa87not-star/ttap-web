@@ -7,13 +7,13 @@ course-only archived upstream rows were used; no UTAR account was accessed.
 | Check | Result |
 | --- | --- |
 | Strict TypeScript | Passed |
-| Unit/component tests | 98 passed in 14 files |
+| Unit/component tests | 104 passed in 15 files |
 | Production web build | Passed; separate worker emitted |
 | Production Electron build | Passed; sandbox-compatible CommonJS preload |
 | Windows directory packaging | Passed; official installed Electron runtime |
-| Chromium production workflows | 8 passed |
-| Firefox production workflows | 8 passed |
-| Packaged Windows workflows | 5 passed |
+| Chromium production workflows | 10 passed |
+| Firefox production workflows | 10 passed |
+| Packaged Windows workflows | 6 passed |
 | Browser bundle boundary | No Electron IPC, Node imports or global require |
 | Source whitespace check | Passed |
 
@@ -88,3 +88,33 @@ Browser inspection also verified the visible keyboard focus ring, generated
 classes and narrow-screen layout. Updated screenshots are in
 [docs/planner.png](docs/planner.png) (packaged Windows) and
 [docs/workbench.png](docs/workbench.png) (1280×720 browser).
+
+## Original workflow guidance and navigation
+
+The app now starts with a three-step local tutorial, with Previous/Next,
+Skip tutorial and replay from the header. Import provides the official UTAR
+registration link and an expandable manual-slot guide adapted from the original
+workflow. Desktop opens the fixed official HTTPS URL through a verified IPC
+capability; browser uses a new tab with noopener/noreferrer. No supplied URL is
+accepted by the desktop capability. Credentials remain in the external website.
+
+Back uses in-app view history. Import and planner sections remain mounted so
+navigation, tutorial replay and sidebar collapse preserve input, selections and
+generated candidates. The desktop sidebar can be hidden to expand the timetable.
+
+Six new unit/component regressions failed before implementation, then passed.
+An independent review found two additional issues: collapsed desktop state could
+blank an active narrow Courses panel after resizing, and the import view lacked
+a keyboard focus destination for an existing project. Both were reproduced with
+failing tests and fixed. Sidebar collapse now applies only at the desktop
+breakpoint; import always has a focusable heading. See [REVIEW.md](REVIEW.md).
+
+Fresh strict types and **104 unit/component tests** passed, both production
+builds and Windows packaging succeeded, and all **26 runtime tests** passed
+(10 Chromium, 10 Firefox, 6 packaged Windows). Workflows verify tutorial navigation,
+manual guidance, the exact registration destination, retained plans, expanded
+calendar width, resize behavior and keyboard focus alongside the original tests.
+The native browser-launch test captures the URL at the shell boundary; it does
+not authenticate. Live UTAR login-page retrieval timed out, and no UTAR account
+was used. Actual authentication and current authenticated page contents remain
+unverified.

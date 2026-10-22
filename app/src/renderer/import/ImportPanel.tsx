@@ -4,6 +4,8 @@ import { readHtmlFiles } from '../../platform/browserFiles';
 import {getFilePort} from '../../platform/files';
 import { parseUtarHtml } from './parseUtarHtml';
 import demo from './demo.html?raw';
+import {RegistrationLink} from '../help/RegistrationLink';
+import {ManualImportGuide} from '../help/ManualImportGuide';
 
 export function ImportPanel({onConfirm}: { onConfirm: (result: ImportResult) => void }) {
   const [pasting,setPasting]=useState(false); const [html,setHtml]=useState('');
@@ -28,6 +30,8 @@ export function ImportPanel({onConfirm}: { onConfirm: (result: ImportResult) => 
   return <section className="import-panel" aria-label="Import courses">
     <div className="import-heading"><div><h2>Bring your courses in.</h2><p>Save your UTAR master schedule as HTML, then add it here.</p></div><button className="quiet" onClick={()=>previewSources([{name:'Demo schedule',text:demo}])} disabled={busy}>Try demo</button></div>
     {!preview && <>
+      <div className="registration-start"><p><strong>First, get your UTAR course data.</strong> Log in and open Course Timetable Preview, then return here with the HTML.</p><RegistrationLink/></div>
+      <ManualImportGuide/>
       <div className="import-tabs"><button className={!pasting?'active':''} onClick={()=>setPasting(false)}>HTML files</button><button className={pasting?'active':''} onClick={()=>setPasting(true)}>Paste HTML</button></div>
       {pasting ? <label className="paste-label">UTAR course HTML<textarea value={html} onChange={e=>setHtml(e.target.value)} placeholder="Paste the HTML from your UTAR master schedule." spellCheck={false}/></label> :
         <div className="dropzone" onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();if(!busy) files(Array.from(e.dataTransfer.files));}}>

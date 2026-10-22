@@ -56,14 +56,25 @@ Electron distribution installed in `app/node_modules/electron/dist`.
 
 ## Arrange a timetable
 
-1. Save your UTAR master schedule pages as UTF-8 `.html` / `.htm` files. Choose
+The app starts with a three-step tutorial. Choose **Skip tutorial** to go straight
+to import, or reopen it from the top-right **Tutorial** button at any time.
+
+1. Choose **Open Course Registration System** to open the
+   [official UTAR login page](https://unitreg.utar.edu.my/portal/courseRegStu/login.jsp)
+   in your browser. Sign in there and open **Course Timetable Preview**.
+   Save the course pages as UTF-8 `.html` / `.htm` files. Choose
    **Choose HTML files**, drop multiple pages together, or use **Paste HTML**.
+   **How to add slots manually?** explains viewing the source with Ctrl+U,
+   copying it and previewing the import. Save and import all pages together
+   when the timetable is paginated; a new import replaces the previous courses.
    **Try demo** provides synthetic courses without accessing UTAR.
 2. Review the course/class counts and import notes, then choose **Use these
    courses**. Invalid or incomplete classes are excluded; a course with no valid
    choice for a required class type is excluded too.
 3. Select courses, optionally fix a lecture/tutorial/practical group, and add
-   unavailable times. These times apply every teaching week.
+   unavailable times. These times apply every teaching week. **Hide courses**
+   expands the desktop timetable; **Show courses** restores the sidebar without
+   changing your choices. Narrow layouts use the three panel buttons.
 4. Choose **Generate**. Browse candidates and teaching weeks; select a class in
    the timetable for all its meetings, rooms and weeks. A new condition invalidates
    the previous results. **Cancel calculation** stops the Worker immediately.
@@ -77,6 +88,11 @@ Dirty projects prompt before replacement or desktop close. A failed/cancelled
 export preserves the current work. Changes made while saving remain dirty. The
 browser warns before leaving dirty work; browser/OS shutdown can still interrupt
 the application, so export important work regularly.
+
+The top-left **Back** button returns to the previous in-app view. Returning to
+import or replaying the tutorial retains the current project and generated
+options; use **Back to planner** to resume. UTAR login happens in the browser;
+the app does not collect credentials or automatically register courses.
 
 ## Limits and compatibility
 
