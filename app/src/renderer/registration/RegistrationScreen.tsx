@@ -2,7 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import type {HtmlSource} from '../../shared/model';
 import {UTAR_REGISTRATION_URL,type RegistrationStatus} from '../../shared/registration';
 
-export function RegistrationScreen({onSource,onReturn,suspended}:{onSource:(source:HtmlSource)=>void;onReturn:()=>void;suspended:boolean}){
+export function RegistrationScreen({onSource,suspended}:{onSource:(source:HtmlSource)=>void;suspended:boolean}){
   const slot=useRef<HTMLDivElement>(null);const[status,setStatus]=useState<RegistrationStatus>({loading:true,error:''});
   const[error,setError]=useState('');const[busy,setBusy]=useState(false);const bridge=window.ttap;
   const request=useRef(0);
@@ -33,9 +33,8 @@ export function RegistrationScreen({onSource,onReturn,suspended}:{onSource:(sour
     try{await bridge?.reloadRegistration();}catch{setStatus({loading:false,error:'The registration page could not be reloaded.'});}
   }
   return <section className="registration-screen" aria-label="Integrated course registration">
-    <div className="registration-toolbar"><div><h1 tabIndex={-1}>Course Registration System</h1><p>Log in to UTAR, then open Course Timetable Preview.</p></div><div className="actions">
+    <div className="registration-toolbar"><div><h2>Course Registration System</h2><p>Sign in below, then open Course Timetable Preview.</p></div><div className="actions">
       {bridge&&<><button onClick={reload}>Reload</button><button className="primary" disabled={busy} onClick={preview}>{busy?'Reading page…':'Preview courses from this page'}</button></>}
-      <button onClick={onReturn}>Back to import</button>
     </div></div>
     {error&&<p className="error" role="alert">{error}</p>}
     {bridge?<><p className="registration-status" role="status">{status.error|| (status.loading?'Loading the official UTAR website…':'UTAR website · Your login stays in this isolated view.')}</p>

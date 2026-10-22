@@ -4,6 +4,8 @@ import {SolverClient} from '../../workers/SolverClient';
 import {CourseList} from './CourseList';
 import {ConstraintsPanel} from './ConstraintsPanel';
 import {TimetableView} from './TimetableView';
+import {CourseSummary} from './CourseSummary';
+import {TimeConstraintsDialog} from './TimeConstraintsDialog';
 
 export function Planner({project,onChange}:{project:Project;onChange:(p:Project)=>void}){
   const client=useMemo(()=>new SolverClient(),[]);const run=useRef(0);
@@ -11,6 +13,7 @@ export function Planner({project,onChange}:{project:Project;onChange:(p:Project)
   const[status,setStatus]=useState<'idle'|'running'|'stale'|'done'>('idle');const[error,setError]=useState('');
   const[panel,setPanel]=useState<'courses'|'timetable'|'conditions'>('timetable');
   const[collapsed,setCollapsed]=useState(false);const coursePanelId=useId();
+  const[timeConstraints,setTimeConstraints]=useState(false);const[summary,setSummary]=useState(false);
   // Cancel and invalidate whenever the actual Project changes, including imports.
   // https://react.dev/reference/react/useEffect#connecting-to-an-external-system
   useEffect(()=>{++run.current;client.cancel();setResult(null);setError('');setStatus(s=>s==='done'?'stale':'idle');},[project,client]);
@@ -27,7 +30,7 @@ export function Planner({project,onChange}:{project:Project;onChange:(p:Project)
   const count=result?.solutions.length??0;
   return <section className="planner">
     <div className="planner-title">
-      <div><h1 tabIndex={-1}>Build your week.</h1><p>Choose courses, set your free time, then generate your options.</p></div>
+      <div><h1 tabIndex={-1}>Build your week.</h1><p>{project.sources.some(s=>s.startsWith('Demo'))?`Demo catalog: ${project.courses.length} courses with sample groups and times.`:'Choose courses, set your free time, then generate your options.'}</p></div>
       <div className="planner-actions">
         <button className="course-toggle" aria-expanded={!collapsed} aria-controls={coursePanelId} onClick={()=>setCollapsed(value=>!value)}>{collapsed?'Show courses':'Hide courses'}</button>
         <p className="selection-count">{project.selection.courseCodes.length?<><strong>{project.selection.courseCodes.length}</strong> courses selected</>:'Choose a course to begin.'}</p>
@@ -37,7 +40,7 @@ export function Planner({project,onChange}:{project:Project;onChange:(p:Project)
     <nav className="mobile-panels" aria-label="Planner panels">{(['courses','timetable','conditions'] as const).map(p=><button key={p} aria-pressed={p===panel} onClick={()=>{setPanel(p);if(p==='courses')setCollapsed(false);}}>{p==='courses'?'Courses':p==='timetable'?'Timetable':'Conditions'}</button>)}</nav>
     <div className={'planner-grid panel-'+panel+(collapsed?' courses-collapsed':'')}>
       <aside className="courses-panel" id={coursePanelId}><CourseList project={project} onChange={change}/></aside>
-      <div className="schedule-panel"><div className="schedule-toolbar"><h2>Your timetable</h2><label><span className="teaching-week-label">Teaching week</span><select aria-label="Teaching week" value={shownWeek} onChange={e=>setWeek(Number(e.target.value))}>{(weeks.length?weeks:[1]).map(w=><option value={w} key={w}>Week {w}</option>)}</select></label></div>
+      <div className={'schedule-panel'+(summary?' summary-open':'')}><div className="schedule-toolbar"><h2>Your timetable</h2><label><span className="teaching-week-label">Teaching week</span><select aria-label="Teaching week" value={shownWeek} onChange={e=>setWeek(Number(e.target.value))}>{(weeks.length?weeks:[1]).map(w=><option value={w} key={w}>Week {w}</option>)}</select></label></div>
         <div className="result-toolbar" aria-live="polite">
           {status==='running'?<span>Finding your options…</span>:count>0?<><button aria-label="Previous timetable" disabled={index===0} onClick={()=>setIndex(i=>i-1)}>‹</button><strong>Option {index+1} of {count}</strong><button aria-label="Next timetable" disabled={index===count-1} onClick={()=>setIndex(i=>i+1)}>›</button></>:<span>{status==='stale'?'Conditions changed. Generate a new timetable.':'Your schedule will appear here.'}</span>}
         </div>
@@ -45,9 +48,12 @@ export function Planner({project,onChange}:{project:Project;onChange:(p:Project)
         {result&&count===0&&<p className="no-results" role="status">No timetable matches your current conditions.</p>}
         {error&&<p role="alert" className="error">{error}</p>}
         <TimetableView courses={project.courses} timetable={result?.solutions[index]} week={shownWeek} blocked={project.selection.blocked}/>
+        {summary&&<CourseSummary courses={project.courses} selectedCodes={project.selection.courseCodes} timetable={result?.solutions[index]}/>}
+        <div className="schedule-secondary"><button onClick={()=>setTimeConstraints(true)}>Set time constraint</button><button aria-expanded={summary} onClick={()=>setSummary(value=>!value)}>{summary?'Hide summary':'Show summary'}</button></div>
         <p className="calendar-note">Classes are shown for week {shownWeek}. Select a class to see all its meetings.</p>
       </div>
       <aside className="conditions-panel"><ConstraintsPanel selection={project.selection} onChange={change}/></aside>
     </div>
+    {timeConstraints&&<TimeConstraintsDialog courses={project.courses} timetables={result?.solutions??[]} blocked={project.selection.blocked} onCancel={()=>setTimeConstraints(false)} onApply={blocked=>{change({...project.selection,blocked});setTimeConstraints(false);}}/>}
   </section>;
 }

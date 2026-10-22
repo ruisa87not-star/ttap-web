@@ -1,6 +1,6 @@
 {
   "name": "ttap-planner",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "UTAR timetable planner for the web and Windows",

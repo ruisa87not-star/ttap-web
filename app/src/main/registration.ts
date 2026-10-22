@@ -17,6 +17,22 @@ export function isScheduleURL(value:string):boolean{
   return isRegistrationURL(value)&&new URL(value).pathname==='/portal/courseRegStu/schedule/masterSchedule.jsp';
 }
 
+// Presentation only: keep UTAR's real form, scripts, CAPTCHA and submission intact.
+const loginCSS=`
+  html, body { margin:0 !important; padding:0 !important; min-width:0 !important; background:white; }
+  body { padding:12px 0 8px !important; }
+  #body_col { width:100% !important; }
+  #body_col > table, body > br, body > table { display:none !important; }
+  #body_col h2 { margin:0 0 32px !important; text-align:center; font-size:32px; font-weight:400; }
+  body > div:not(#body_col):not(:has(form)):not(:has(>strong)) { display:none !important; }
+  form { margin:0; }
+  form > table { width:calc(100% - 32px) !important; max-width:824px; table-layout:fixed; }
+  form input:not([type=hidden]):not([type=submit]):not([type=reset]) { width:min(256px, 96%); box-sizing:border-box; }
+  form img { max-width:96%; height:auto; }
+  body > div:has(>strong) { margin-top:8px; text-align:center; }
+  @media(max-width:480px) { #body_col h2 { font-size:24px; margin-bottom:20px !important; } form > table { width:calc(100% - 12px) !important; } form td { overflow-wrap:anywhere; } }
+`;
+
 export function createRegistrationView(window:BrowserWindow):RegistrationPort{
   let view:WebContentsView|undefined;let loading=false;let error='';
   function load(){
@@ -39,6 +55,11 @@ export function createRegistrationView(window:BrowserWindow):RegistrationPort{
     wc.on('did-start-loading',()=>{loading=true;});
     wc.on('did-stop-loading',()=>{loading=false;});
     wc.on('did-finish-load',()=>{error='';});
+    wc.on('dom-ready',()=>{
+      if(isRegistrationURL(wc.getURL())&&new URL(wc.getURL()).pathname==='/portal/courseRegStu/login.jsp'){
+        void wc.insertCSS(loginCSS).catch(()=>{ /* The original page remains usable if its presentation changes. */ });
+      }
+    });
     wc.on('did-fail-load',(_event,code,_description,_url,isMainFrame)=>{if(isMainFrame&&code!==-3){loading=false;error='UTAR could not be loaded. Check your connection and choose Reload.';view?.setVisible(false);}});
     wc.on('will-attach-webview',event=>event.preventDefault());
     load();

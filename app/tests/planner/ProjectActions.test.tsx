@@ -7,7 +7,7 @@ import {validateProject} from '../../src/shared/project';
 const port=vi.hoisted(()=>({pickHtml:vi.fn(),openProject:vi.fn(),exportProject:vi.fn()}));
 vi.mock('../../src/platform/files',()=>({getFilePort:()=>port}));
 beforeEach(()=>{vi.clearAllMocks();port.openProject.mockResolvedValue({status:'cancelled'});port.exportProject.mockResolvedValue({status:'cancelled'});});
-async function demo(){render(<App/>);await userEvent.click(screen.getByRole('button',{name:'Skip tutorial'}));await userEvent.click(screen.getByRole('button',{name:'Try demo'}));await userEvent.click(await screen.findByRole('button',{name:'Use these courses'}));}
+async function demo(){render(<App/>);await userEvent.click(screen.getByRole('button',{name:'Skip tutorial'}));await userEvent.click(screen.getByRole('button',{name:'Try demo'}));}
 it('prompts for edits made after a clean project starts opening another file',async()=>{
   await demo();port.exportProject.mockResolvedValue({status:'ok',value:{kind:'saved',name:'current.ttap.json'}});
   await userEvent.click(screen.getByRole('button',{name:'Export project'}));expect(screen.getByText('Project is up to date')).toBeInTheDocument();

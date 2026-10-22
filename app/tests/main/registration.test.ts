@@ -6,7 +6,7 @@ import {initialWindowBounds} from '../../src/main/windowBounds';
 const mock=vi.hoisted(()=>({views:[] as any[],partition:vi.fn(),session:{setPermissionRequestHandler:vi.fn(),setPermissionCheckHandler:vi.fn(),on:vi.fn()}}));
 vi.mock('electron',()=>({session:{fromPartition:(...args:unknown[])=>{mock.partition(...args);return mock.session;}},WebContentsView:class {
   prefs:unknown;url='https://unitreg.utar.edu.my/portal/courseRegStu/login.jsp';setBackgroundColor=vi.fn();setVisible=vi.fn();setBounds=vi.fn();
-  webContents={isDestroyed:()=>false,loadURL:vi.fn().mockResolvedValue(undefined),on:vi.fn(),setWindowOpenHandler:vi.fn(),close:vi.fn(),getURL:()=>this.url,executeJavaScript:vi.fn()};
+  webContents={isDestroyed:()=>false,loadURL:vi.fn().mockResolvedValue(undefined),on:vi.fn(),insertCSS:vi.fn().mockResolvedValue('style-key'),setWindowOpenHandler:vi.fn(),close:vi.fn(),getURL:()=>this.url,executeJavaScript:vi.fn()};
   constructor(options:unknown){this.prefs=options;mock.views.push(this);}
 }}));
 beforeEach(()=>{vi.clearAllMocks();mock.views.length=0;});
@@ -25,6 +25,11 @@ it('keeps invalid or out-of-window native bounds hidden',()=>{
   const {port,view}=controller();for(const rect of [{x:0,y:0,width:800,height:600},{x:0,y:56,width:900,height:200},{x:NaN,y:100,width:100,height:100}]){port.setBounds(rect);expect(view.setVisible).toHaveBeenLastCalledWith(false);}
   port.setBounds({x:16,y:160,width:768,height:420});expect(view.setBounds).toHaveBeenCalledWith({x:16,y:160,width:768,height:420});expect(view.setVisible).toHaveBeenLastCalledWith(true);
   port.setBounds(null);expect(view.setVisible).toHaveBeenLastCalledWith(false);
+});
+it('only styles the official login document without reading or replacing its form',()=>{
+  const {view}=controller();const ready=view.webContents.on.mock.calls.find(([event]:[string])=>event==='dom-ready')[1];ready();
+  expect(view.webContents.insertCSS).toHaveBeenCalledOnce();expect(view.webContents.executeJavaScript).not.toHaveBeenCalled();
+  view.url='https://unitreg.utar.edu.my/portal/courseRegStu/schedule/masterSchedule.jsp';ready();expect(view.webContents.insertCSS).toHaveBeenCalledOnce();
 });
 it('does not evaluate or return login-page HTML',async()=>{
   const {port,view}=controller();expect((await port.readPage()).status).toBe('error');expect(view.webContents.executeJavaScript).not.toHaveBeenCalled();

@@ -1,4 +1,4 @@
-import {useState,type CSSProperties} from 'react';
+import {useState} from 'react';
 import type {BlockedPeriod,Course,Timetable} from '../../shared/model';
 import {dayNames,formatTime} from './ConstraintsPanel';
 import {typeName} from './CourseList';
@@ -9,20 +9,17 @@ export function TimetableView({courses,timetable,week,blocked=[]}:{courses:Cours
   const first=Math.floor(Math.min(480,...meetings.map(m=>m.meeting.startMinute),...blocked.map(b=>b.startMinute))/60)*60;
   const last=Math.ceil(Math.max(1080,...meetings.map(m=>m.meeting.endMinute),...blocked.map(b=>b.endMinute))/60)*60;
   const hours=Array.from({length:(last-first)/60+1},(_,n)=>first+n*60);
-  const days=dayNames.slice(0,meetings.some(m=>m.meeting.day>5)||blocked.some(b=>b.day>5)?7:5);
-  const top=(minute:number)=>`${(minute-first)/(last-first)*100}%`;
-  const position=(start:number,end:number)=>({top:top(start),height:`${(end-start)/(last-first)*100}%`});
+  const left=(minute:number)=>`${(minute-first)/(last-first)*100}%`;
+  const position=(start:number,end:number)=>({left:left(start),width:`${(end-start)/(last-first)*100}%`});
   const details=options.find(o=>o.option.id===detail);
   return <section aria-label="Weekly timetable" className="weekly-timetable">
-    {!timetable?<div className="calendar-empty"><span aria-hidden="true">▦</span><h3>A week that works for you.</h3><p>Select your courses and generate a timetable to get started.</p></div>:<>
-      <div className="calendar-scroll"><div className="calendar" style={{'--day-count':days.length} as CSSProperties}><div className="calendar-head"><span>Time</span>{days.map(d=><b key={d}>{d.slice(0,3)}</b>)}</div><div className="calendar-body"><div className="time-axis">{hours.map(t=><span key={t} style={{top:top(t)}}>{formatTime(t)}</span>)}</div>
-        {days.map((day,i)=><section className="day-column" aria-label={day} key={day}>
-          {hours.slice(0,-1).map(t=><div className="hour-rule" key={t} style={{top:top(t)}}/>)}
+      <div className="calendar-scroll"><div className="calendar"><div className="calendar-head"><span>Day</span><div className="time-axis">{hours.map(t=><time key={t} aria-label={formatTime(t)} dateTime={formatTime(t)} style={{left:left(t)}}><span className="hour-full">{formatTime(t)}</span><span className="hour-short" aria-hidden="true">{formatTime(t).slice(0,2)}</span></time>)}</div></div><div className="calendar-body">
+        {dayNames.map((day,i)=><section className="day-row" aria-label={day} key={day}><b className="day-label">{day.slice(0,3)}</b><div className="day-track">
+          {hours.slice(0,-1).map(t=><div className="hour-rule" key={t} style={{left:left(t)}}/>)}
           {blocked.filter(b=>b.day===i+1).map((b,n)=><div className="blocked-block" key={'blocked'+n} style={position(b.startMinute,b.endMinute)}>Unavailable</div>)}
           {meetings.filter(m=>m.meeting.day===i+1 && m.meeting.weeks.includes(week)).map(({course,option,meeting,tone},n)=><button key={option.id+'-'+n} className={'meeting tone-'+tone%6} style={position(meeting.startMinute,meeting.endMinute)} onClick={()=>setDetail(option.id)} aria-expanded={detail===option.id} aria-label={`${course.code} ${course.name}, ${typeName(option.type)} group ${option.group}, ${formatTime(meeting.startMinute)} to ${formatTime(meeting.endMinute)}, ${meeting.room}`}><strong>{course.code}</strong><span>{option.type}{option.group} · {formatTime(meeting.startMinute)}</span>{meeting.endMinute-meeting.startMinute>=60&&<small>{meeting.room}</small>}</button>)}
-        </section>)}</div></div></div>
-      {meetings.every(m=>!m.meeting.weeks.includes(week))&&<p className="no-results">No classes in week {week}.</p>}
+        </div></section>)}</div></div></div>
+      {timetable&&meetings.every(m=>!m.meeting.weeks.includes(week))&&<p className="no-results">No classes in week {week}.</p>}
       {details&&<div className="class-details"><div><h3>{details.course.code} / {typeName(details.option.type)} group {details.option.group}</h3><button className="quiet" onClick={()=>setDetail(null)}>Close details</button></div><p>{details.course.name}</p><ul>{details.option.meetings.map((m,i)=><li key={i}>{dayNames[m.day-1]} {formatTime(m.startMinute)}–{formatTime(m.endMinute)} / {m.room||'Room not specified'} / Weeks {m.weeks.join(', ')}</li>)}</ul>{details.option.remark&&<p>{details.option.remark}</p>}</div>}
-    </>}
   </section>;
 }

@@ -7,15 +7,17 @@ import {Planner} from './planner/Planner';
 import {ProjectActions,ProjectDialog} from './ProjectActions';
 import {Tutorial} from './help/Tutorial';
 import {RegistrationScreen} from './registration/RegistrationScreen';
+import {createDemoProject} from './import/demoProject';
 import {version} from '../../package.json';
 
-type View='tutorial'|'import'|'planner'|'registration';
+type View='tutorial'|'import'|'planner';
 
 export function App(){
   const [project,setProject]=useState<Project|null>(null);
   const [baseline,setBaseline]=useState('');const [views,setViews]=useState<View[]>(['tutorial']);
   const [importKey,setImportKey]=useState(0);const main=useRef<HTMLElement>(null);
   const [registrationSources,setRegistrationSources]=useState<HtmlSource[]|undefined>();
+  const [manual,setManual]=useState(false);
   const view=views.at(-1)!;
   useEffect(()=>{document.title=`TTAP Planner ${version}`;},[]);
   function navigate(next:View){setViews(previous=>previous.at(-1)===next?previous:[...previous,next]);}
@@ -40,7 +42,7 @@ export function App(){
     if(dirty)setPending({run});else run();
   }),[dirty,busy]);
   function replace(next:Project,clean:boolean){
-    const run=()=>{setProject(next);setBaseline(clean?JSON.stringify(next):'');navigate('planner');setPending(null);setError('');setNotice('');};
+    const run=()=>{setProject(next);setBaseline(clean?JSON.stringify(next):'');navigate('planner');setManual(false);setPending(null);setError('');setNotice('');};
     if(currentDirty.current)setPending({run});else run();
   }
   async function open(){
@@ -78,15 +80,16 @@ export function App(){
       {views.length>1&&<button className="back-button quiet" aria-label="Go back" onClick={back}><span aria-hidden="true">←</span> Back</button>}
       <a className="brand" href="#" aria-label="TTAP UTAR timetable planner" onClick={e=>{e.preventDefault();navigate('import');}}><span className="brand-mark" aria-hidden="true">▦</span><span className="brand-name">TTAP<small className="brand-version">Planner {version}</small></span><span className="brand-description">UTAR timetable planner</span></a>
     </div>{view!=='tutorial'&&<button className="quiet tutorial-button" onClick={()=>navigate('tutorial')}>Tutorial</button>}</header>
-    <main ref={main}><div className="project-bar" hidden={view==='tutorial'||view==='registration'}><ProjectActions hasProject={!!project} dirty={dirty} busy={busy} onOpen={open} onImport={()=>{setImportKey(k=>k+1);setRegistrationSources(undefined);navigate('import');}} onExport={()=>exportCurrent()}/></div>
+    <main ref={main}><div className="project-bar" hidden={view==='tutorial'}><ProjectActions hasProject={!!project} dirty={dirty} busy={busy} onOpen={open} onImport={()=>{setImportKey(k=>k+1);setRegistrationSources(undefined);navigate('import');}} onExport={()=>exportCurrent()}/></div>
       {error&&!pending&&<p className="error app-message" role="alert">{error}</p>}{notice&&<p className="app-message" role="status">{notice}</p>}
-      {view==='tutorial'&&<div className="screen-view" data-view="tutorial"><Tutorial onDone={finishTutorial} onRegistration={()=>navigate('registration')}/></div>}
-      {view==='registration'&&<div className="screen-view" data-view="registration"><RegistrationScreen suspended={!!pending||!!download} onReturn={()=>navigate('import')} onSource={source=>{setRegistrationSources([source]);setImportKey(k=>k+1);navigate('import');}}/></div>}
-      <div className="screen-view" data-view="import" hidden={view!=='import'}>{project?<div className="import-back"><div><h1 tabIndex={-1}>Import courses.</h1><p>Importing replaces the courses in this project.</p></div><button onClick={()=>navigate('planner')}>Back to planner</button></div>:<div className="welcome"><h1 tabIndex={-1}>Plan your semester.</h1><p>Import your UTAR courses to build and compare timetables.</p></div>}
-        <ImportPanel key={importKey} initialSources={registrationSources} onRegistration={()=>navigate('registration')} onConfirm={r=>replace({schemaVersion:1,sources:r.sources,courses:r.courses,selection:{courseCodes:[],lockedClassIds:[],blocked:[]}},false)}/>
+      {view==='tutorial'&&<div className="screen-view" data-view="tutorial"><Tutorial onDone={finishTutorial}/></div>}
+      <div className="screen-view registration-home" data-view="import" hidden={view!=='import'}>{project?<div className="import-back"><div><h1 tabIndex={-1}>Import courses.</h1><p>Importing replaces the courses in this project.</p></div><button onClick={()=>navigate('planner')}>Back to planner</button></div>:<div className="home-heading"><h1 tabIndex={-1}>Plan your semester.</h1><p>Sign in to UTAR, import your courses, then build your timetable.</p></div>}
+        <RegistrationScreen suspended={view!=='import'||manual||!!pending||!!download} onSource={source=>{setRegistrationSources([source]);setImportKey(k=>k+1);setManual(true);}}/>
+        <div className="home-actions"><button onClick={()=>{setRegistrationSources(undefined);setManual(true);}}>Add slots manually</button><button className="primary" onClick={()=>replace(createDemoProject(),false)}>Try demo</button></div>
       </div>
       {project&&<div className="screen-view" data-view="planner" hidden={view!=='planner'}><Planner project={project} onChange={setProject}/></div>}
     </main>
+    {manual&&<ProjectDialog title="Add slots manually" className="manual-dialog" dismissOnBackdrop onCancel={()=>setManual(false)}><button className="dialog-close quiet" aria-label="Close manual import" onClick={()=>setManual(false)}>×</button><ImportPanel key={importKey} initialSources={registrationSources} onConfirm={r=>replace({schemaVersion:1,sources:r.sources,courses:r.courses,selection:{courseCodes:[],lockedClassIds:[],blocked:[]}},false)}/></ProjectDialog>}
     {pending&&!download&&<ProjectDialog title="Keep your changes?" onCancel={()=>{if(!busy)setPending(null);}}><p>Export your project before continuing, or discard the changes.</p>{error&&<p role="alert" className="error">{error}</p>}<div className="actions"><button disabled={busy} onClick={()=>setPending(null)}>Cancel</button><button disabled={busy} onClick={()=>pending.run()}>Discard changes</button><button className="primary" disabled={busy} onClick={()=>exportCurrent(true)}>Export and continue</button></div></ProjectDialog>}
     {download&&<ProjectDialog title="Keep your download" onCancel={()=>setDownload(null)}><p>Your browser started downloading {download.name}. Keep that file before marking your project as exported.</p><div className="actions"><button onClick={()=>setDownload(null)}>Keep editing</button><button className="primary" onClick={keptDownload}>I kept the file</button></div></ProjectDialog>}
   </>;

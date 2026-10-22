@@ -90,3 +90,24 @@ now overlay the calendar rather than shrinking its time axis. The browser
 regression failed before this adjustment and passes after it, including closing
 details, Saturday/Sunday periods and an extended 07:00–20:00 range. No further
 source findings were reported. No second independent review was requested.
+
+## Reference-based flow revision — Planner 0.2.0
+
+A fresh read-only reviewer checked the user's seven requested changes against
+`6c7d816`, including startup maximization, automatic compact registration,
+manual-dialog dismissal, a substantial demo catalog and the explicitly corrected
+weekday/time direction. Two P2 findings were reproduced with failing regressions:
+
+| Finding | Fix |
+| --- | --- |
+| Replaying the tutorial from a plan left an obsolete registration link that returned to the plan | Remove the obsolete handoff and describe automatic registration after finishing/skipping the initial tutorial |
+| Missing optional credit data produced a false zero/incomplete numeric total | Show Unknown whenever any selected course omits credits |
+
+The reviewer found no further actionable source issues in native lifecycle,
+dirty-project protection, meeting placement or constraint filtering. Visual
+inspection separately reproduced undersized weekday rows when showing summary
+and a constraint-dialog width overridden by the base dialog rule. Compact chrome,
+summary sizing and a specific dialog selector resolve these; browser regressions
+verify row height and dialog width. A backdrop-close focus regression was also
+reproduced and fixed by restoring the connected opener on dialog cleanup.
+No second independent review was requested.

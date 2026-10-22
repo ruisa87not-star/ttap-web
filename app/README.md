@@ -14,20 +14,20 @@ The compact workspace keeps **Generate** beside the selected course count, above
 the timetable. On smaller screens, switch between **Courses**, **Timetable** and
 **Conditions**; the same Generate/Cancel action is available from every panel.
 Course names use 14px text, with 12px course codes and 11px metadata in the calendar.
-The calendar defaults to **Mon–Fri columns and hourly rows from 08:00 to 18:00**.
-It scales to the available panel height and width, keeping the whole school day
-visible. Weekend classes or unavailable times add Saturday/Sunday automatically;
-earlier or later classes extend the time range. Select a class for its full details
-when the compact calendar truncates text.
+The calendar has **Mon–Sun rows down the left and a horizontal 08:00–18:00 time
+axis across the top**. It scales to the available panel height and width, keeping
+the whole week visible even before selecting courses. Earlier/later classes extend
+the time range. Select a class for its full details when compact cells truncate text.
 The application frame fits the available viewport. Long course lists, import
 instructions and timetable content scroll inside their own regions. Windows
-startup dimensions and minimum size are limited to the display's work area.
+startup maximizes the app; restored dimensions and minimum size are limited to
+the display's work area.
 
 ## Start
 
 On Windows, double-click **[Start-TTAP.cmd](../Start-TTAP.cmd)** in the repository
 root to open the packaged desktop app. The header and window title identify this
-release as **Planner 0.1.1**. The launcher checks the package against source and
+release as **Planner 0.2.0**. The launcher checks the package against source and
 build-input modification times. If it is missing or older, it rebuilds before
 opening, using the installed Node.js and project dependencies. Build failures
 stay visible and do not fall back to the older package. A current package can
@@ -71,18 +71,25 @@ Electron distribution installed in `app/node_modules/electron/dist`.
 The app starts with a three-step tutorial. Choose **Skip tutorial** to go straight
 to import, or reopen it from the top-right **Tutorial** button at any time.
 
-1. Choose **Open Course Registration System** to open the
+1. Finish or skip the tutorial to see the
    [official UTAR login page](https://unitreg.utar.edu.my/portal/courseRegStu/login.jsp)
-   inside the app. On desktop it uses an isolated native web view. Sign in and
+   immediately inside the home screen. The compact desktop view shows the real
+   title, login form, CAPTCHA and server clock, while hiding the banner and
+   announcements. It uses an isolated native web view. Sign in and
    open **Course Timetable Preview**, then choose **Preview courses from this
    page** to import the current page into the existing review step. Login forms
    are rejected; capture supports the known `schedule/masterSchedule.jsp` page.
-   For manual import, save pages in a regular browser as UTF-8 `.html` / `.htm` files. Choose
+   For manual import, choose **Add slots manually**. A floating dialog contains
+   instructions, HTML files and paste import; click outside it, press Escape or
+   use its close button to dismiss it. Save pages in a regular browser as UTF-8
+   `.html` / `.htm` files. Choose
    **Choose HTML files**, drop multiple pages together, or use **Paste HTML**.
-   **How to add slots manually?** explains viewing the source with Ctrl+U,
+   The instructions explain viewing the source with Ctrl+U,
    copying it and previewing the import. Save and import all pages together
    when the timetable is paginated; a new import replaces the previous courses.
-   **Try demo** provides synthetic courses without accessing UTAR.
+   **Try demo** directly opens the timetable with an 18-course sample catalog,
+   multiple lecture/tutorial groups and no preselection. Demo times are synthetic;
+   they are not current UTAR offerings.
 2. Review the course/class counts and import notes, then choose **Use these
    courses**. Invalid or incomplete classes are excluded; a course with no valid
    choice for a required class type is excluded too.
@@ -90,9 +97,15 @@ to import, or reopen it from the top-right **Tutorial** button at any time.
    unavailable times. These times apply every teaching week. **Hide courses**
    expands the desktop timetable; **Show courses** restores the sidebar without
    changing your choices. Narrow layouts use the three panel buttons.
+   **Set time constraint** opens a half-hour grid showing availability across the
+   generated options. Toggle cells, review how many shown options remain, apply,
+   then Generate again. Constraints apply across all teaching weeks; the preview
+   describes the currently generated options, including when the solver is capped.
 4. Choose **Generate**. Browse candidates and teaching weeks; select a class in
    the timetable for all its meetings, rooms and weeks. A new condition invalidates
    the previous results. **Cancel calculation** stops the Worker immediately.
+   **Show summary** displays the selected courses, assigned groups/rooms and total
+   credit hours. If any selected course omits credits, the total is marked Unknown.
 5. Choose **Export project**. Desktop uses a native save dialog and writes the
    file atomically. Web starts a browser download: confirm **I kept the file**
    only after retaining it. A download gesture alone does not prove a disk save.
@@ -113,7 +126,10 @@ not automatically register courses.
 The web version embeds the same official page in an iframe. UTAR's frame or
 third-party-cookie policies may prevent browser login; its registration screen
 provides a direct-page fallback and saved HTML import. Desktop embedding does
-not depend on iframe permission. The live desktop login page loaded successfully;
+not depend on iframe permission. The desktop-only login presentation does not
+recreate the form or read its field values; normal browser cross-origin rules
+prevent applying that presentation inside the web iframe. The live compact
+desktop login page loaded successfully;
 authenticated workflows still require validation with your account.
 
 An actual capture of the unauthenticated embedded UTAR content is in

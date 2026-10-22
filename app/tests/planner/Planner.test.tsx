@@ -51,3 +51,9 @@ it('shows meetings only in their teaching week',()=>{
   const view=render(<TimetableView {...props} week={1}/>);expect(screen.getByText('TEST1013')).toBeInTheDocument();expect(screen.queryByText('OTHER1013')).toBeNull();
   view.rerender(<TimetableView {...props} week={2}/>);expect(screen.queryByText('TEST1013')).toBeNull();expect(screen.getByText('OTHER1013')).toBeInTheDocument();
 });
+it('previews visual time constraints before applying them to the project',async()=>{
+  render(<Harness/>);await userEvent.click(screen.getByRole('button',{name:'Generate'}));await screen.findByText('Option 1 of 1');
+  await userEvent.click(screen.getByRole('button',{name:'Set time constraint'}));const dialog=screen.getByRole('dialog',{name:'Set time constraint'});
+  await userEvent.click(within(dialog).getByRole('button',{name:'Monday 09:00–09:30'}));expect(dialog).toHaveTextContent('0 of 1 shown options remain');
+  await userEvent.click(within(dialog).getByRole('button',{name:'Apply constraints'}));expect(screen.queryByRole('dialog')).toBeNull();expect(screen.getByRole('button',{name:'Remove unavailable time 1'})).toBeInTheDocument();
+});

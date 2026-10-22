@@ -22,7 +22,8 @@ app.whenReady().then(()=>{
   session.defaultSession.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));
   session.defaultSession.setPermissionCheckHandler(()=>false);
   Menu.setApplicationMenu(null);
-  const window=new BrowserWindow({...initialWindowBounds(screen.getPrimaryDisplay().workArea),title:'TTAP Planner',backgroundColor:'#f3f6fa',webPreferences:{preload:join(import.meta.dirname,'../preload/index.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true}});
+  const window=new BrowserWindow({...initialWindowBounds(screen.getPrimaryDisplay().workArea),show:false,title:'TTAP Planner',backgroundColor:'#f3f6fa',webPreferences:{preload:join(import.meta.dirname,'../preload/index.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true}});
+  window.once('ready-to-show',()=>{window.maximize();window.show();});
   const devURL=!app.isPackaged?process.env.ELECTRON_RENDERER_URL:undefined;
   const trustedURL=devURL??productionURL;
   window.webContents.setWindowOpenHandler(()=>({action:'deny'}));

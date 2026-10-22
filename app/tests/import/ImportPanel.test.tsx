@@ -16,6 +16,6 @@ it('previews a valid paste before confirming it', async () => {
 });
 it('cancels a preview without replacing the current project', async () => {
   const confirm = vi.fn(); render(<ImportPanel onConfirm={confirm}/>);
-  await userEvent.click(screen.getByRole('button',{name:'Try demo'}));
+  await userEvent.click(screen.getByRole('button',{name:'Paste HTML'}));await userEvent.click(screen.getByLabelText('UTAR course HTML'));await userEvent.paste(html);await userEvent.click(screen.getByRole('button',{name:'Preview import'}));
   await userEvent.click(screen.getByRole('button',{name:'Cancel import'})); expect(confirm).not.toHaveBeenCalled();
 });

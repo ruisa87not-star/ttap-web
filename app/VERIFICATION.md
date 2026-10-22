@@ -7,12 +7,12 @@ course-only archived upstream rows were used; no UTAR account was accessed.
 | Check | Result |
 | --- | --- |
 | Strict TypeScript | Passed |
-| Unit/component tests | 123 passed in 19 files |
+| Unit/component tests | 127 passed in 21 files |
 | Production web build | Passed; separate worker emitted |
 | Production Electron build | Passed; sandbox-compatible CommonJS preload |
 | Windows directory packaging | Passed; official installed Electron runtime |
-| Chromium production workflows | 13 passed |
-| Firefox production workflows | 13 passed |
+| Chromium production workflows | 14 passed |
+| Firefox production workflows | 14 passed |
 | Packaged Windows workflows | 7 passed |
 | Browser bundle boundary | No Electron IPC, Node imports or global require |
 | Source whitespace check | Passed |
@@ -196,3 +196,56 @@ production web/Electron builds, Windows packaging and **33 runtime tests**
 exchange and dirty-close checks remain passing. [docs/planner.png](docs/planner.png)
 is the actual final packaged calendar; [docs/school-day-mobile.png](docs/school-day-mobile.png)
 shows the browser's compact layout. These use synthetic class data.
+
+## Reference-based revision — Planner 0.2.0
+
+The user's explicit diagram supersedes the earlier orientation: **weekdays are
+rows down the left (Mon–Sun), and time runs left-to-right along the top
+(08:00–18:00)**. The calendar is visible before generating, always includes
+Saturday/Sunday and extends its time range for earlier/later meetings. Geometry
+checks now verify horizontally ordered non-overlapping time labels, vertically
+ordered weekday labels, both endpoint classes and no calendar/document overflow
+at 1280×720, 1024×600, 375×667 and 320×667. The native checks cover both desktop
+client sizes as well.
+
+The previous 0.1.1 binary reproduced `maximized: false`; the rebuilt 0.2.0 starts
+hidden, maximizes at ready-to-show, then appears. Every packaged test checks
+actual `BrowserWindow.isMaximized()`. Resizing tests explicitly restore the
+window before changing its size.
+
+Skipping/finishing the initial tutorial now reveals the embedded login directly.
+The native view is bounded to the compact home card, and login-only cosmetic CSS
+hides the known banner and announcements without replacing the official form,
+changing its action, copying its values or relaxing web security. An actual
+unauthenticated official-page probe verified the maximized parent and a visible
+**870×311** view; the form ended at y=205 inside its 311px viewport, with no
+vertical overflow. [docs/registration.png](docs/registration.png) is a direct
+capture of that real view, not a composite. No account or CAPTCHA was submitted.
+Authenticated behavior remains unverified. Web uses a bounded cross-origin
+iframe and retains the documented browser embedding restrictions.
+
+Native synthetic-origin checks verify the same automatic entry, compact bounds,
+banner/announcement presentation, visible password input, original isolation,
+capture validation and suspension while the manual modal is open. Manual import
+supports HTML files/paste within a floating dialog, backdrop or Escape dismissal,
+focus restoration and the existing dirty-replacement/export guards. Replaying
+the tutorial retains the current plan without an obsolete registration handoff.
+
+Try demo enters the planner directly with **18 selectable courses** and several
+lecture/tutorial groups. Four reference-style subjects generate multiple options;
+the course summary shows their groups, matching colors and 11 total credits.
+Unknown optional credits produce an Unknown total. A half-hour constraint dialog
+shows occupancy across current options and previews the remaining count before
+applying. Cancel leaves the project unchanged; applying invalidates results for
+regeneration. Counts explicitly describe shown options rather than all possible
+solutions. [docs/demo-summary.png](docs/demo-summary.png) and
+[docs/demo-time-constraints.png](docs/demo-time-constraints.png) are actual browser
+captures with synthetic schedules.
+
+The independent review's two findings and three visual/focus regressions were
+reproduced and fixed; see [REVIEW.md](REVIEW.md). Final fresh validation passed
+strict types, **127 tests in 21 files**, production web/Electron builds, Windows
+packaging and all **35 runtime tests** (14 Chromium, 14 Firefox, 7 packaged Windows).
+Native project exchange, saved-HTML security and cancelled-save/dirty-close
+protection remain passing. User-owned reference PNGs and `suggestion/` were not
+modified or included in the change.

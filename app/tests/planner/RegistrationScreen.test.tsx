@@ -10,11 +10,11 @@ function deferred(){
   return {finish:()=>finish({status:'ok',value:{name:'Test schedule',text:'<table></table>'}})};
 }
 it('ignores a page capture that finishes after the user leaves registration',async()=>{
-  const capture=deferred(),onSource=vi.fn();const view=render(<RegistrationScreen onSource={onSource} onReturn={vi.fn()} suspended={false}/>);
+  const capture=deferred(),onSource=vi.fn();const view=render(<RegistrationScreen onSource={onSource} suspended={false}/>);
   await userEvent.click(screen.getByRole('button',{name:'Preview courses from this page'}));view.unmount();await act(async()=>capture.finish());expect(onSource).not.toHaveBeenCalled();
 });
 it('cancels pending capture while a parent dialog suspends registration',async()=>{
-  const capture=deferred(),onSource=vi.fn(),onReturn=vi.fn();const view=render(<RegistrationScreen onSource={onSource} onReturn={onReturn} suspended={false}/>);
-  await userEvent.click(screen.getByRole('button',{name:'Preview courses from this page'}));view.rerender(<RegistrationScreen onSource={onSource} onReturn={onReturn} suspended/>);
-  await act(async()=>capture.finish());expect(onSource).not.toHaveBeenCalled();view.rerender(<RegistrationScreen onSource={onSource} onReturn={onReturn} suspended={false}/>);expect(screen.getByRole('button',{name:'Preview courses from this page'})).toBeEnabled();
+  const capture=deferred(),onSource=vi.fn();const view=render(<RegistrationScreen onSource={onSource} suspended={false}/>);
+  await userEvent.click(screen.getByRole('button',{name:'Preview courses from this page'}));view.rerender(<RegistrationScreen onSource={onSource} suspended/>);
+  await act(async()=>capture.finish());expect(onSource).not.toHaveBeenCalled();view.rerender(<RegistrationScreen onSource={onSource} suspended={false}/>);expect(screen.getByRole('button',{name:'Preview courses from this page'})).toBeEnabled();
 });
