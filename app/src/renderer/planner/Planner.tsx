@@ -25,7 +25,13 @@ export function Planner({project,onChange}:{project:Project;onChange:(p:Project)
   function cancel(){++run.current;client.cancel();setStatus('idle');setError('');}
   const count=result?.solutions.length??0;
   return <section className="planner">
-    <div className="planner-title"><div><h1>Build your week.</h1><p>{project.courses.length} courses available. Choose what you need, then find your fit.</p></div><div className="selection-count"><strong>{project.selection.courseCodes.length}</strong><span>courses selected</span></div></div>
+    <div className="planner-title">
+      <div><h1>Build your week.</h1><p>Choose courses, set your free time, then generate your options.</p></div>
+      <div className="planner-actions">
+        <p className="selection-count">{project.selection.courseCodes.length?<><strong>{project.selection.courseCodes.length}</strong> courses selected</>:'Choose a course to begin.'}</p>
+        {status==='running'?<button className="primary" onClick={cancel}>Cancel calculation</button>:<button className="primary" disabled={!project.selection.courseCodes.length} onClick={generate}>Generate</button>}
+      </div>
+    </div>
     <nav className="mobile-panels" aria-label="Planner panels">{(['courses','timetable','conditions'] as const).map(p=><button key={p} aria-pressed={p===panel} onClick={()=>setPanel(p)}>{p==='courses'?'Courses':p==='timetable'?'Timetable':'Conditions'}</button>)}</nav>
     <div className={'planner-grid panel-'+panel}>
       <aside className="courses-panel"><CourseList project={project} onChange={change}/></aside>
@@ -39,7 +45,7 @@ export function Planner({project,onChange}:{project:Project;onChange:(p:Project)
         <TimetableView courses={project.courses} timetable={result?.solutions[index]} week={shownWeek} blocked={project.selection.blocked}/>
         <p className="calendar-note">Classes are shown for week {shownWeek}. Select a class to see all its meetings.</p>
       </div>
-      <aside className="conditions-panel"><ConstraintsPanel selection={project.selection} onChange={change}/><div className="generate-box"><p>{project.selection.courseCodes.length?'Ready to explore your options?':'Choose at least one course to begin.'}</p>{status==='running'?<button className="primary" onClick={cancel}>Cancel calculation</button>:<button className="primary" disabled={!project.selection.courseCodes.length} onClick={generate}>Generate</button>}</div></aside>
+      <aside className="conditions-panel"><ConstraintsPanel selection={project.selection} onChange={change}/></aside>
     </div>
   </section>;
 }

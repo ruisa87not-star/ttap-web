@@ -11,9 +11,9 @@ course-only archived upstream rows were used; no UTAR account was accessed.
 | Production web build | Passed; separate worker emitted |
 | Production Electron build | Passed; sandbox-compatible CommonJS preload |
 | Windows directory packaging | Passed; official installed Electron runtime |
-| Chromium production workflows | 6 passed |
-| Firefox production workflows | 6 passed |
-| Packaged Windows workflows | 4 passed |
+| Chromium production workflows | 8 passed |
+| Firefox production workflows | 8 passed |
+| Packaged Windows workflows | 5 passed |
 | Browser bundle boundary | No Electron IPC, Node imports or global require |
 | Source whitespace check | Passed |
 
@@ -61,3 +61,30 @@ The GitHub page confirms the fork/branch, and `git ls-remote` confirms equality
 with the local commit. The original `upstream` remote remains intact. No PR or
 hosted website was created. User-owned `suggestion/` files remain untracked and
 unchanged.
+
+## Timetable workspace polish
+
+The approved blue-and-white workspace was refined with the frontend-design,
+ui-ux-pro-max and frontend-ui-engineering skills. The header is 56px high and the
+project actions no longer inherit dialog button spacing. Generate/Cancel moved
+from the Conditions panel to the shared planner heading. Export is a secondary
+action. Course names increased from 12px to 14px, calendar codes from 10px to 12px,
+and meeting metadata from 9px to 11px. Time inputs use full rows to keep Windows
+AM/PM controls visible.
+
+Before the change, both Chromium and Firefox failed the new viewport and text
+regressions: Generate extended below the 720px viewport and course names were
+12px. Those checks now pass. The timetable starts at approximately 214px on a
+1280×720 web viewport, compared with approximately 328px before the change.
+The shared action remains visible in every panel at widths 720, 375 and 320px,
+without whole-page horizontal overflow; the calendar itself can scroll.
+A compact 1280×720 native window is also covered.
+
+Fresh validation: strict TypeScript, all 98 unit/component tests, production web
+build, Windows packaging and all **21 runtime tests** passed. The additional
+runtime tests exercise action placement and text readability; the original import,
+solver, file exchange, cancellation and security workflows remain in the full run.
+Browser inspection also verified the visible keyboard focus ring, generated
+classes and narrow-screen layout. Updated screenshots are in
+[docs/planner.png](docs/planner.png) (packaged Windows) and
+[docs/workbench.png](docs/workbench.png) (1280×720 browser).

@@ -13,6 +13,12 @@ export async function configure(page:Page){
   await page.getByRole('combobox',{name:'Day',exact:true}).selectOption('6');await page.getByRole('button',{name:'Add unavailable time'}).click();
 }
 export async function generate(page:Page){await page.getByRole('button',{name:'Generate',exact:true}).click();await expect(page.getByText('Option 1 of 2')).toBeVisible();}
+export async function expectPrimaryActionInViewport(page:Page){
+  await expect(page.getByRole('button',{name:'Generate',exact:true})).toBeVisible();
+  const box=await page.getByRole('button',{name:'Generate',exact:true}).boundingBox();
+  const height=await page.evaluate(()=>innerHeight);
+  expect(box).not.toBeNull();expect(box!.y).toBeGreaterThanOrEqual(0);expect(box!.y+box!.height).toBeLessThanOrEqual(height);
+}
 export async function downloadProject(page:Page,path:string){
   const event=page.waitForEvent('download');await page.getByRole('button',{name:'Export project'}).click();await (await event).saveAs(path);
   await page.getByRole('button',{name:'I kept the file'}).click();await expect(page.getByText('Project is up to date')).toBeVisible();

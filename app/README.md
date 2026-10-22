@@ -10,6 +10,12 @@ in the [GitHub fork](https://github.com/ruisa87not-star/ttap-web).
 
 ![Packaged Windows timetable planner](docs/planner.png)
 
+The compact workspace keeps **Generate** beside the selected course count, above
+the timetable. On smaller screens, switch between **Courses**, **Timetable** and
+**Conditions**; the same Generate/Cancel action is available from every panel.
+Course names use 14px text, with 12px course codes and 11px metadata in the calendar.
+The calendar scrolls independently to retain readable day columns.
+
 ## Start
 
 Use Node.js **24.15 or later** and npm 11 (verified with Node 24.20.0 / npm 11.5.2).

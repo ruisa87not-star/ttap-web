@@ -1,10 +1,14 @@
 import {test,expect,_electron,type ElectronApplication} from '@playwright/test';
 import {resolve} from 'node:path';
 import {readFile,writeFile} from 'node:fs/promises';
-import {demo,configure,generate,downloadProject,openWebProject,readProject,expectCandidate} from './helpers';
+import {demo,configure,generate,downloadProject,openWebProject,readProject,expectCandidate,expectPrimaryActionInViewport} from './helpers';
 let app:ElectronApplication;
 test.beforeEach(async()=>{app=await _electron.launch({executablePath:resolve('release/win-unpacked/TTAP-Planner.exe')});});
 test.afterEach(async()=>{if(app){await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().forEach(w=>w.destroy())).catch(()=>{});await app.close();}});
+test('primary action remains visible in a compact Windows window',async()=>{
+  await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(1280,720));const page=await app.firstWindow();await demo(page);
+  await page.getByRole('link',{name:'TTAP UTAR timetable planner'}).scrollIntoViewIfNeeded();await expectPrimaryActionInViewport(page);
+});
 test('native HTML import preserves the archived spanned-Remark layout',async()=>{
   const page=await app.firstWindow();await app.evaluate(({dialog},path)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths:[path]});},resolve('tests/fixtures/student-td-mode.html'));
   await page.getByRole('button',{name:'Choose HTML files'}).click();await expect(page.getByText('1 courses',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Use these courses'}).click();await page.getByRole('checkbox',{name:/^TEST1013 /}).check();await page.getByRole('button',{name:'Generate',exact:true}).click();

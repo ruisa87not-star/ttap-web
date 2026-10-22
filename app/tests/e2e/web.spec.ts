@@ -1,7 +1,29 @@
 import {test,expect} from '@playwright/test';
 import {readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {demo,configure,generate,downloadProject,openWebProject,readProject,expectCandidate,difficultProject} from './helpers';
+import {demo,configure,generate,downloadProject,openWebProject,readProject,expectCandidate,difficultProject,expectPrimaryActionInViewport} from './helpers';
+
+test('primary timetable action stays in view on desktop and every narrow panel',async({page},info)=>{
+  await page.setViewportSize({width:1280,height:720});await page.goto('/');await demo(page);
+  await page.getByRole('link',{name:'TTAP UTAR timetable planner'}).scrollIntoViewIfNeeded();await expectPrimaryActionInViewport(page);
+  const schedule=await page.locator('.schedule-panel').boundingBox();expect(schedule!.y).toBeLessThan(240);
+  await page.screenshot({path:info.outputPath('workbench-1280.png')});
+  for(const width of [720,375,320]){
+    await page.setViewportSize({width,height:900});await page.getByRole('link',{name:'TTAP UTAR timetable planner'}).scrollIntoViewIfNeeded();
+    for(const panel of ['Courses','Timetable','Conditions']){
+      await page.getByRole('button',{name:panel,exact:true}).click();await expectPrimaryActionInViewport(page);
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    }
+    await page.getByRole('button',{name:'Timetable',exact:true}).click();await page.screenshot({path:info.outputPath(`workbench-${width}.png`)});
+  }
+});
+test('course and timetable text remain readable at a laptop viewport',async({page},info)=>{
+  await page.setViewportSize({width:1280,height:720});await page.goto('/');await demo(page);await generate(page);
+  expect(await page.locator('.course-name').first().evaluate(e=>parseFloat(getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(14);
+  expect(await page.locator('.meeting strong').first().evaluate(e=>parseFloat(getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(12);
+  expect(await page.locator('.meeting small').first().evaluate(e=>parseFloat(getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(11);
+  await page.screenshot({path:info.outputPath('workbench-generated.png')});
+});
 
 test('imports the archived td/Mode and spanned-Remark layout with both meetings',async({page})=>{
   await page.goto('/');await page.getByRole('button',{name:'Paste HTML'}).click();await page.getByLabel('UTAR course HTML').fill(await readFile('tests/fixtures/student-td-mode.html','utf8'));
