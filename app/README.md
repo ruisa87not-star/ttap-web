@@ -18,6 +18,10 @@ The calendar scrolls independently to retain readable day columns.
 
 ## Start
 
+On Windows, double-click **[Start-TTAP.cmd](../Start-TTAP.cmd)** in the repository
+root to open the packaged desktop app. It needs no terminal or Node.js once built.
+If the executable is missing, the launcher displays the commands to build it.
+
 Use Node.js **24.15 or later** and npm 11 (verified with Node 24.20.0 / npm 11.5.2).
 Run these commands from the repository root:
 

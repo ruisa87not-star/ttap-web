@@ -4,7 +4,13 @@
 
 The redesigned application is in [`app/`](app/README.md). It shares a React/TypeScript
 interface and solver between the browser and Windows Electron, imports UTAR HTML,
-and exchanges portable `.ttap.json` files. From this repository root:
+and exchanges portable `.ttap.json` files.
+
+On Windows, double-click **[Start-TTAP.cmd](Start-TTAP.cmd)** to open the packaged
+desktop app. If it has not been built, the launcher shows the build commands.
+The entire `app/release/win-unpacked/` folder must remain in place.
+
+For development, run these commands from the repository root:
 
 ```sh
 npm --prefix app ci
