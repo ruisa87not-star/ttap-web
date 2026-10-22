@@ -10,7 +10,9 @@ files:
   - LICENSE
   - UPSTREAM.md
   - THIRD_PARTY_NOTICES.txt
+  - src/assets/fork-logo.png
   - '!node_modules/**'
 win:
+  icon: src/assets/fork-logo.png
   target: dir
   executableName: TTAP-Planner

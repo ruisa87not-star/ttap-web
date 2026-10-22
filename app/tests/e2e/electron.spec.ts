@@ -12,9 +12,11 @@ test.beforeEach(async()=>{
 });
 test.afterEach(async()=>{if(app){await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().forEach(w=>w.destroy())).catch(()=>{});await app.close();}});
 
-test('packaged Planner 0.4.0 fits weekday rows and horizontal 08:00–18:00',async({},info)=>{
-  const page=await app.firstWindow();await expect(page.getByText('Planner 0.4.0',{exact:true})).toBeVisible();await expect(page).toHaveTitle('TTAP Planner 0.4.0');
-  expect(await app.evaluate(({app})=>app.getVersion())).toBe('0.4.0');
+test('packaged Planner 0.5.0 fits weekday rows and horizontal 08:00–18:00',async({},info)=>{
+  const page=await app.firstWindow();await expect(page.getByText('Planner 0.5.0',{exact:true})).toBeVisible();await expect(page).toHaveTitle('TTAP Planner 0.5.0');
+  expect(await app.evaluate(({app})=>app.getVersion())).toBe('0.5.0');
+  expect(await page.locator('.brand-mark').evaluate(image=>(image as HTMLImageElement).naturalWidth>0)).toBe(true);
+  expect(await page.evaluate(async()=>{const href=document.querySelector<HTMLLinkElement>('link[rel=icon]')!.href;return (await fetch(href)).ok;})).toBe(true);
   await importPlan(page,schoolDayProject());await expect(page.getByText('Option 1 of 1')).toBeVisible();
   for(const size of [[1280,720],[1024,600]]){
     await app.evaluate(({BrowserWindow},[width,height])=>{const win=BrowserWindow.getAllWindows()[0];win.unmaximize();win.setContentSize(width,height);},size);await expectSchoolDayInViewport(page);

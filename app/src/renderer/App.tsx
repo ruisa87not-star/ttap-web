@@ -9,6 +9,7 @@ import {RegistrationScreen} from './registration/RegistrationScreen';
 import {createDemoProject} from './import/demoProject';
 import {version} from '../../package.json';
 import {renderRegistrationImage} from './planner/registrationImage';
+import logo from '../assets/fork-logo.png';
 
 type View='tutorial'|'import'|'planner';
 
@@ -70,7 +71,7 @@ export function App(){
   }
   return <><header className="app-header"><div className="header-start">
       {views.length>1&&<button className="back-button quiet" aria-label="Go back" onClick={back}><span aria-hidden="true">←</span> Back</button>}
-      <a className="brand" href="#" aria-label="TTAP UTAR timetable planner" onClick={e=>{e.preventDefault();navigate('import');}}><span className="brand-mark" aria-hidden="true">▦</span><span className="brand-name">TTAP<small className="brand-version">Planner {version}</small></span><span className="brand-description">UTAR timetable planner</span></a>
+      <a className="brand" href="#" aria-label="TTAP UTAR timetable planner" onClick={e=>{e.preventDefault();navigate('import');}}><img className="brand-mark" src={logo} alt=""/><span className="brand-name">TTAP<small className="brand-version">Planner {version}</small></span><span className="brand-description">UTAR timetable planner</span></a>
     </div>{view!=='tutorial'&&<button className="quiet tutorial-button" onClick={()=>navigate('tutorial')}>Tutorial</button>}</header>
     <main ref={main}>
       {error&&!pending&&<p className="error app-message" role="alert">{error}</p>}{notice&&<p className="app-message" role="status">{notice}</p>}

@@ -144,3 +144,20 @@ Courses aside disappeared when resizing to the narrow Timetable panel. Rendering
 the flyout through a portal fixes the issue; a desktop-to-320px regression
 now passes. Existing project/candidate guards, Worker cancellation, native
 isolation and image-save/dirty-close protection remain part of the final gates.
+
+## Clear, fixed sidebar control and fork logo — Planner 0.5.0
+
+A fresh read-only reviewer inspected the working-tree changes against `2fadc92`
+and reported no actionable Critical, Important or Minor findings. It verified
+UI/PNG blocked-period clipping, Clear across the full selection and locked groups,
+the persistent sidebar button, exact Course Clash messages and responsive state
+retention. It independently matched the supplied logo against source, emitted
+web/Electron assets and the packaged ASAR, and confirmed the generated Windows
+ICO, source-asset packaging and existing launcher freshness coverage.
+
+Set aside: visual redesign of the supplied logo (the exact artwork was requested),
+authenticated UTAR submission (unchanged and outside this revision), and native
+icons on non-Windows systems (outside the Windows release). These exclusions
+are accepted for this revision. No second review was requested. The reviewer did
+not rerun tests; the implementing agent's fresh gates passed 144 unit/component
+and 44 runtime tests, strict types, web/Electron builds and Windows packaging.

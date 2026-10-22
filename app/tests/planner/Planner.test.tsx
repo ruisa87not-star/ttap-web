@@ -38,7 +38,7 @@ it('cancels without showing an error',async()=>{
 it('passes a fixed class and unavailable time to the solver and reports no solution',async()=>{
   render(<Harness/>);await userEvent.click(screen.getByRole('button',{name:'Choose groups for TEST1013'}));await userEvent.selectOptions(screen.getByLabelText('Lecture for TEST1013'),makeProject().courses[0].classes[0].id);await userEvent.click(screen.getByRole('button',{name:'Close group selection'}));
   await userEvent.click(screen.getByRole('button',{name:'Add unavailable time'}));
-  expect(await screen.findByText('No timetable matches your current conditions.')).toBeInTheDocument();
+  expect(await screen.findByRole('alert')).toHaveTextContent(/^Course Clash$/);
   expect(solver.solve.mock.calls.at(-1)?.[0].selection.lockedClassIds).toHaveLength(1);
 });
 it('shows a limit notice instead of claiming a complete result count',async()=>{
@@ -59,7 +59,7 @@ it('blocks an incompatible course at its card without clearing the valid timetab
   render(<Harness initial={p}/>);
   await userEvent.click(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'}));
   expect(await screen.findByText('No clashes. Your selected courses fit together.')).toBeInTheDocument();
-  const blocked=screen.getByRole('checkbox',{name:'OTHER1013 Conflicting course'});expect(blocked).toBeDisabled();expect(blocked.closest('article')).toHaveTextContent('Course clash');
+  const blocked=screen.getByRole('checkbox',{name:'OTHER1013 Conflicting course'});expect(blocked).toBeDisabled();expect(blocked.closest('article')).toHaveTextContent('Course Clash');
   await userEvent.click(blocked);expect(blocked).not.toBeChecked();
   expect(within(screen.getByRole('region',{name:'Weekly timetable'})).queryAllByText('TEST1013')).toHaveLength(2);
   await userEvent.click(screen.getByRole('checkbox',{name:'TEST1013 COMPUTING & SOCIETY'}));expect(blocked).toBeEnabled();
@@ -72,7 +72,7 @@ it('finds a compatible alternative immediately instead of rejecting an overlappi
   expect(await screen.findByText('No clashes. Your selected courses fit together.')).toBeInTheDocument();
   expect(screen.getByRole('region',{name:'Wednesday'}).querySelector('button')).not.toBeNull();
   await userEvent.click(screen.getByRole('button',{name:'Choose groups for TEST1013'}));await userEvent.selectOptions(screen.getByLabelText('Lecture for TEST1013'),p.courses[0].classes[0].id);await userEvent.click(screen.getByRole('button',{name:'Close group selection'}));
-  expect(await screen.findByRole('alert')).toHaveTextContent('Clash detected');
+  expect(await screen.findByRole('alert')).toHaveTextContent(/^Course Clash$/);
 });
 it('previews visual time constraints before applying them to the project',async()=>{
   render(<Harness/>);await screen.findByText('Option 1 of 1');

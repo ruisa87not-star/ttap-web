@@ -26,8 +26,8 @@ export function renderRegistrationImage(project:Project,timetable:Timetable):str
   ctx.fillStyle='#ffffff';ctx.fillRect(0,0,width,height);ctx.fillStyle='#142d50';ctx.font='bold 44px Arial, sans-serif';ctx.fillText('TTAP / Your registration guide',pad,85);
   ctx.font='24px Arial, sans-serif';ctx.fillStyle='#435a75';
   ['1. Sign in to the UTAR Course Registration System.','2. Find each course below and select the matching lecture, tutorial and practical groups.','3. Confirm availability and registration in UTAR. This image is your planning reference.'].forEach((text,i)=>ctx.fillText(text,pad,140+i*38));
-  const first=Math.floor(Math.min(480,...meetings.map(m=>m.meeting.startMinute),...project.selection.blocked.map(b=>b.startMinute))/60)*60;
-  const last=Math.ceil(Math.max(1080,...meetings.map(m=>m.meeting.endMinute),...project.selection.blocked.map(b=>b.endMinute))/60)*60;
+  const first=Math.floor(Math.min(480,...meetings.map(m=>m.meeting.startMinute))/60)*60;
+  const last=Math.ceil(Math.max(1080,...meetings.map(m=>m.meeting.endMinute))/60)*60;
   const x0=pad+96,gridWidth=content-112, x=(minute:number)=>x0+(minute-first)/(last-first)*gridWidth;
   ctx.font='bold 28px Arial, sans-serif';ctx.fillStyle='#142d50';ctx.fillText('Weekly timetable / all meetings',pad,290);
   ctx.font='22px Arial, sans-serif';ctx.textAlign='center';for(let t=first;t<=last;t+=60)ctx.fillText(formatTime(t),x(t),333);ctx.textAlign='left';
@@ -35,7 +35,7 @@ export function renderRegistrationImage(project:Project,timetable:Timetable):str
   dayNames.forEach((day,i)=>{
     const rowHeight=rowHeights[i];ctx.fillStyle=i%2?'#f6f8fc':'#ffffff';ctx.fillRect(pad,y,content,rowHeight);ctx.font='bold 24px Arial, sans-serif';ctx.fillStyle='#142d50';ctx.fillText(day.slice(0,3),pad+12,y+36);
     ctx.strokeStyle='#d5dfed';for(let t=first;t<=last;t+=60)ctx.strokeRect(x(t),y,0,rowHeight);
-    for(const b of project.selection.blocked.filter(b=>b.day===i+1)){ctx.fillStyle='#e8ebef';ctx.fillRect(x(b.startMinute),y,x(b.endMinute)-x(b.startMinute),rowHeight);}
+    for(const b of project.selection.blocked.filter(b=>b.day===i+1&&b.endMinute>first&&b.startMinute<last)){const start=Math.max(first,b.startMinute),end=Math.min(last,b.endMinute);ctx.fillStyle='#e8ebef';ctx.fillRect(x(start),y,x(end)-x(start),rowHeight);}
     for(const m of meetings.filter(m=>m.meeting.day===i+1)){
       const left=x(m.meeting.startMinute),top=y+m.lane/lanes[i]*rowHeight+3,w=x(m.meeting.endMinute)-left,h=rowHeight/lanes[i]-6;
       ctx.fillStyle=colors[m.tone%6];ctx.fillRect(left+2,top,w-4,h);ctx.save();ctx.beginPath();ctx.rect(left+5,top,w-10,h);ctx.clip();ctx.fillStyle='#173455';ctx.font='bold 20px Arial, sans-serif';ctx.fillText(m.course.code,left+8,top+24);ctx.font='18px Arial, sans-serif';ctx.fillText(`${m.option.type}(${m.option.group}) ${formatTime(m.meeting.startMinute)}`,left+8,top+48);ctx.restore();

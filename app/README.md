@@ -11,8 +11,10 @@ in the [GitHub fork](https://github.com/ruisa87not-star/ttap-web).
 ![Packaged Windows timetable planner](docs/planner.png)
 
 Selecting courses or changing a group checks clashes and updates timetable options
-automatically. Impossible prospective courses are disabled, with a clash
-explanation on the card. Selected courses stay removable. Use the right arrow
+automatically. Impossible prospective courses are disabled and show **Course Clash**
+on the card. Selected courses stay removable. **Clear** beside the course search
+deselects every course and fixed group, including filtered-out courses, while
+keeping the catalog and unavailable times. Use the right arrow
 on a selected card to open Lecture/Tutorial/Practical choices beside it.
 **Export image** sits in the planner header; there is no Generate or project toolbar.
 **Cancel calculation** stops a long search; Retry check appears only if a check
@@ -23,7 +25,9 @@ The calendar has **Mon–Sun rows down the left and a horizontal 08:00–18:00 t
 axis across the top**. It scales to the available panel height and width, keeping
 the whole week visible for ordinary schedules, even before selecting courses.
 Many alternating-week meetings use readable lanes and internal vertical scrolling.
-Earlier/later classes extend the time range. Select a class for its full details when compact cells truncate text.
+Earlier/later classes extend the time range. Unavailable time never extends it;
+its shading is clipped to the visible range in the app and exported PNG.
+Select a class for its full details when compact cells truncate text.
 The application frame fits the available viewport. Long course lists, import
 instructions and timetable content scroll inside their own regions. Windows
 startup maximizes the app; restored dimensions and minimum size are limited to
@@ -33,7 +37,8 @@ the display's work area.
 
 On Windows, double-click **[Start-TTAP.cmd](../Start-TTAP.cmd)** in the repository
 root to open the packaged desktop app. The header and window title identify this
-release as **Planner 0.4.0**. The launcher checks the package against source and
+release as **Planner 0.5.0**. The supplied fork logo appears in the header,
+browser tab and Windows application icon. The launcher checks the package against source and
 build-input modification times. If it is missing or older, it rebuilds before
 opening, using the installed Node.js and project dependencies. Build failures
 stay visible and do not fall back to the older package. A current package can
@@ -103,8 +108,8 @@ to import, or reopen it from the top-right **Tutorial** button at any time.
    choice for a required class type is excluded too.
 3. Select courses, optionally fix a lecture/tutorial/practical group, and add
    unavailable times. These times apply every teaching week. A sidebar icon beside
-   **Courses** collapses the desktop course panel; the icon at its left edge
-   restores it. Your choices remain intact. Narrow layouts use the three panel
+   **Courses** collapses and restores the desktop course panel. The button stays
+   in the same position for both actions. Your choices remain intact. Narrow layouts use the three panel
    buttons. Selected cards have a [right arrow for choosing groups](docs/course-groups.png). The flyout
    stays within the screen and scrolls internally for long course names.
    **Set time constraint** opens a half-hour grid showing availability across the
@@ -115,8 +120,9 @@ to import, or reopen it from the top-right **Tutorial** button at any time.
 4. Browse the compatible timetable options. Clashes are checked immediately after
    every course, group or constraint edit. An unselected course is disabled only
    if no group combination fits your selected courses and unavailable time.
-   A message on that card explains the clash. If a later group or constraint
-   edit makes the selected plan impossible, the alert asks you to adjust it. Old results are cleared while checking. **Cancel calculation** stops the
+   The card shows **Course Clash**. If a later group or constraint
+   edit makes the selected plan impossible, the alert also shows **Course Clash**.
+   Old results are cleared while checking. **Cancel calculation** stops the
    Worker immediately. **Show summary** displays selected courses, groups/rooms
    and total credits (Unknown if any selected course omits credits).
    All class meetings are displayed together, with separate lanes for meetings

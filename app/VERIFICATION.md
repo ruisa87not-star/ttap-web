@@ -1,4 +1,49 @@
-# Verification — 2026-10-22
+# Verification — latest revision 2026-10-23
+
+## Clear, fixed sidebar control and fork logo — Planner 0.5.0
+
+Fresh checks passed strict TypeScript, **144 unit/component tests in 25 files**,
+production web and Electron builds, Windows packaging, and **44 runtime tests**
+(18 Chromium, 18 Firefox, 8 packaged Windows). The executable's product/file
+version is 0.5.0; the native runtime confirms version 0.5.0 and maximized startup.
+The launcher freshness check reports Current. Running the root Start-TTAP.cmd
+opened a live process titled TTAP Planner 0.5.0 from this repository's release
+folder.
+
+The new regressions failed before production changes: blocked periods expanded
+the calendar/PNG range, Clear was absent, card text was verbose, and collapsing
+the sidebar moved its control by 17px horizontally and vertically. They pass
+after the fixes. Unavailable time is intersected with the visible calendar range,
+including partial overlap and periods entirely outside it. Actual early/evening
+classes still determine any extension beyond the default 08:00–18:00 range.
+Clash filtering continues to use the full, unchanged blocked periods.
+
+Clear removes selected courses and locked class IDs while preserving imported
+courses, unavailable periods and the current search. Runtime checks clear two
+courses with one hidden by search, confirm an empty timetable/disabled export,
+then reselect a course and verify the previous fixed group is gone. A full-day
+00:00–23:59 Sunday constraint leaves the axis at 08:00–18:00. Both browsers verify
+identical sidebar-button bounding boxes before and after collapse, responsive
+state retention, and exact Course Clash text.
+
+The user-provided fork_logo.png is copied unchanged to src/assets/fork-logo.png;
+both SHA-256 hashes are
+2FB75D8083FA8B29208DC910B403F06B6297EDE6CC01A6062B8B044A49E5036F.
+The header and favicon load in production web and packaged Windows. Windows
+packaging uses the PNG for its application icon and includes it for BrowserWindow.
+The asset lives under src, so existing launcher freshness checks cover changes.
+No dependencies were added. User-owned root reference images, including the
+original fork_logo.png, and suggestion/ remain untouched and uncommitted.
+
+Updated synthetic captures: [docs/planner.png](docs/planner.png),
+[docs/unavailable-time.png](docs/unavailable-time.png),
+[docs/course-groups.png](docs/course-groups.png),
+[docs/school-day-mobile.png](docs/school-day-mobile.png), and
+[docs/registration-guide.png](docs/registration-guide.png).
+No authenticated UTAR workflow was submitted in this revision; existing login
+error/isolation and image-save/dirty-close regression checks remain passing.
+
+## Earlier verification records
 
 Environment: Windows 11 x64, Node 24.20.0, npm 11.5.2, Electron 45.0.0,
 Playwright 1.64.1 (Chromium 156 / Firefox 157). Synthetic schedules and

@@ -13,11 +13,11 @@ test('Monday–Sunday rows and horizontal 08:00–18:00 fit after resizing',asyn
   }
   await page.getByRole('region',{name:'Friday',exact:true}).getByRole('button').click();await expect(page.locator('.class-details').getByText('Full school day',{exact:true})).toBeVisible();await expectSchoolDayInViewport(page);await page.getByRole('button',{name:'Close details'}).click();await expectSchoolDayInViewport(page);
   await page.setViewportSize({width:1024,height:600});
-  const extended=schoolDayProject();extended.courses[0].classes[0].meetings=[{day:6,startMinute:1080,endMinute:1200,weeks:[1],room:'Evening room'}];extended.selection.blocked=[{day:7,startMinute:420,endMinute:480}];
+  const extended=schoolDayProject();extended.courses[0].classes[0].meetings=[{day:6,startMinute:1080,endMinute:1200,weeks:[1],room:'Evening room'}];extended.selection.blocked=[{day:7,startMinute:420,endMinute:540}];
   const extendedPath=info.outputPath('weekend-evening.ttap.json');await writeFile(extendedPath,JSON.stringify(extended));await importFixturePlan(page,extendedPath);await expect(page.getByText('Option 1 of 1')).toBeVisible();
   await expect(page.getByRole('region',{name:'Saturday',exact:true}).getByRole('button',{name:/18:00 to 20:00/})).toBeInViewport();
   await expect(page.getByRole('region',{name:'Sunday',exact:true}).getByText('Unavailable')).toBeInViewport();
-  await expect(page.locator('.time-axis').getByLabel('07:00',{exact:true})).toBeInViewport();await expect(page.locator('.time-axis').getByLabel('20:00',{exact:true})).toBeInViewport();
+  await expect(page.locator('.time-axis').getByLabel('07:00',{exact:true})).toHaveCount(0);await expect(page.locator('.time-axis').getByLabel('08:00',{exact:true})).toBeInViewport();await expect(page.locator('.time-axis').getByLabel('20:00',{exact:true})).toBeInViewport();
   expect(await page.locator('.calendar-scroll').evaluate(e=>e.scrollHeight<=e.clientHeight+1)).toBe(true);
   await page.screenshot({path:info.outputPath('weekend-evening.png')});
 });
@@ -65,9 +65,27 @@ test('the app frame fits short screens while long sections scroll internally',as
 
 test('desktop collapse preserves an active narrow Courses panel when resizing',async({page})=>{
   await demo(page);await page.setViewportSize({width:720,height:900});await page.getByRole('button',{name:'Courses',exact:true}).click();
-  await page.setViewportSize({width:1280,height:720});await page.getByRole('button',{name:'Collapse course sidebar'}).click();
+  await page.setViewportSize({width:1280,height:720});const before=await page.getByRole('button',{name:'Collapse course sidebar'}).boundingBox();await page.getByRole('button',{name:'Collapse course sidebar'}).click();
+  const after=await page.getByRole('button',{name:'Expand course sidebar'}).boundingBox();expect(after).toEqual(before);
   await page.setViewportSize({width:375,height:812});await expect(page.getByRole('button',{name:'Courses',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect(page.getByRole('checkbox',{name:/^TEST1013 /})).toBeVisible();await expect(page.getByRole('checkbox',{name:/^TEST1013 /})).toBeChecked();
+});
+
+test('Clear removes filtered and fixed selections while full-day unavailable time keeps the 08:00–18:00 axis',async({page},info)=>{
+  await page.setViewportSize({width:1280,height:720});await demo(page);await configure(page);
+  await page.getByRole('combobox',{name:'Day',exact:true}).selectOption('7');await page.getByLabel('From',{exact:true}).fill('00:00');await page.getByLabel('Until',{exact:true}).fill('23:59');await page.getByRole('button',{name:'Add unavailable time'}).click();
+  await expect(page.getByText('Option 1 of 2')).toBeVisible();
+  expect(await page.locator('.time-axis time').evaluateAll(times=>times.map(time=>time.getAttribute('aria-label')))).toEqual(['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00']);
+  await expect(page.getByRole('region',{name:'Sunday',exact:true}).getByText('Unavailable')).toBeInViewport();
+  expect(await page.locator('.brand-mark').evaluate(image=>(image as HTMLImageElement).naturalWidth>0)).toBe(true);
+  expect((await page.request.get((await page.locator('link[rel=icon]').getAttribute('href'))!)).ok()).toBe(true);
+  await page.screenshot({path:info.outputPath('planner-0.5.0.png')});
+  await page.getByRole('searchbox',{name:'Search courses'}).fill('TEST1013');await page.getByRole('button',{name:'Clear',exact:true}).click();
+  await page.getByRole('searchbox',{name:'Search courses'}).fill('');await expect(page.getByRole('checkbox')).toHaveCount(18);await expect(page.getByRole('checkbox',{checked:true})).toHaveCount(0);
+  await expect(page.getByRole('region',{name:'Weekly timetable'}).getByRole('button')).toHaveCount(0);await expect(page.getByRole('button',{name:'Export image'})).toBeDisabled();await expect(page.getByRole('button',{name:'Clear',exact:true})).toBeDisabled();
+  await expect(page.getByRole('button',{name:/Remove unavailable time/})).toHaveCount(2);
+  await page.getByRole('checkbox',{name:/^TEST1013 /}).check();await page.getByRole('button',{name:'Choose groups for TEST1013'}).click();await expect(page.getByLabel('Tutorial for TEST1013')).toHaveValue('');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight)).toBe(true);
 });
 
 test('tutorial, manual import guide, sidebar and Back preserve the current plan',async({page},info)=>{
@@ -155,7 +173,7 @@ test('invalid HTML import preserves the current selection',async({page})=>{
 
 test('time constraints immediately clear an impossible timetable and recover after removal',async({page})=>{
   await demo(page);await page.getByLabel('Until').fill('18:00');await page.getByRole('button',{name:'Add unavailable time'}).click();await page.getByRole('button',{name:'Choose groups for TEST1013'}).click();await page.getByLabel('Lecture for TEST1013').selectOption({label:'Group 1 / #1'});await page.getByRole('button',{name:'Close group selection'}).click();
-  await expect(page.getByText('No timetable matches your current conditions.')).toBeVisible();await expect(page.getByRole('button',{name:'Export image'})).toBeDisabled();
+  await expect(page.getByRole('alert')).toHaveText('Course Clash');await expect(page.getByRole('button',{name:'Export image'})).toBeDisabled();
   await page.getByRole('button',{name:'Remove unavailable time 1'}).click();await expect(page.getByText('No clashes. Your selected courses fit together.')).toBeVisible();await expect(page.getByRole('button',{name:'Export image'})).toBeEnabled();
 });
 
@@ -169,7 +187,7 @@ test('clashing courses are disabled in place and selected-course arrows open a b
   const plan=schoolDayProject();plan.courses[0].classes[0].meetings=[{day:1,startMinute:540,endMinute:600,weeks:[1],room:'Room A'}];
   const second=structuredClone(plan.courses[0]);second.code='CLASH1001';second.name='Conflicting course';second.classes[0].courseCode=second.code;second.classes[0].id=JSON.stringify([second.code,'L','1','1']);plan.courses.push(second);
   await page.setViewportSize({width:1280,height:720});await importPlan(page,plan);
-  const clash=page.getByRole('checkbox',{name:'CLASH1001 Conflicting course'});await expect(clash).toBeDisabled();await expect(clash.locator('xpath=ancestor::article')).toContainText('Course clash');
+  const clash=page.getByRole('checkbox',{name:'CLASH1001 Conflicting course'});await expect(clash).toBeDisabled();await expect(clash.locator('xpath=ancestor::article').locator('.course-clash')).toHaveText('Course Clash');
   await expect(page.getByRole('button',{name:'Generate',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Open project'})).toHaveCount(0);await expect(page.locator('.planner-actions').getByRole('button',{name:'Export image'})).toBeEnabled();
   await page.getByRole('button',{name:'Choose groups for DAY1001'}).click();const dialog=page.getByRole('dialog',{name:'Groups for DAY1001'});
   const card=await page.getByRole('checkbox',{name:'DAY1001 Full school day'}).locator('xpath=ancestor::article').boundingBox();expect((await dialog.boundingBox())!.x).toBeGreaterThan(card!.x+card!.width-20);

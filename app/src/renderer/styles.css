@@ -64,7 +64,7 @@ p { color: var(--muted); line-height: 1.6; }
 .back-button { display: flex; align-items: center; gap: 6px; padding: 6px 8px; }
 .back-button span { font-size: 22px; line-height: 1; }
 .tutorial-button { padding: 6px 10px; }
-.brand-mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 6px; background: var(--amber); font-size: 25px; }
+.brand-mark { display: block; flex-shrink: 0; width: 36px; height: 36px; object-fit: contain; }
 .brand-description { margin-left: 4px; padding-left: 14px; border-left: 1px solid var(--line); color: var(--muted); font-size: 14px; font-weight: 400; }
 .local-label { color: var(--muted); font-size: 13px; }
 main { display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; max-width: 1600px; margin: 0 auto; padding: 12px 20px; overflow: hidden; }
@@ -172,13 +172,14 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 .planner-actions .selection-count { color: var(--muted); font-size: 13px; }
 .selection-count strong { color: var(--ink); font-size: 16px; }
 .planner-actions button { min-width: 120px; }
-.planner-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr) 232px; align-items: start; gap: 16px; }
+.planner-grid { position: relative; display: grid; grid-template-columns: 240px minmax(0, 1fr) 232px; align-items: start; gap: 16px; }
 .sidebar-rail { display: none; }
 .course-heading, .course-card-row { display: flex; align-items: flex-start; gap: 8px; }
-.course-heading { align-items: center; }
+.course-heading { align-items: center; min-height: 32px; padding-left: 40px; }
 .course-heading h2 { font-size: 18px; }
 .course-card-row .course-choice { flex: 1; min-width: 0; }
 .sidebar-button, .group-arrow { display: grid; place-items: center; flex-shrink: 0; padding: 5px; min-width: 30px; min-height: 32px; }
+.course-sidebar-toggle { position: absolute; z-index: 2; top: 16px; left: 16px; width: 32px; height: 32px; }
 .group-arrow { font-size: 28px; line-height: 1; }
 .course-disabled { color: var(--muted); cursor: default; }
 .course-clash, .course-checking { margin: 10px 0 0 25px; font-size: 12px; line-height: 1.5; }
@@ -200,6 +201,9 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 .panel-heading h2 { margin: 0; font-size: 20px; }
 .panel-heading > span { padding: 2px 7px; border-radius: 4px; background: #edf2f8; color: var(--muted); font-size: 13px; }
 .search-input { width: 100%; min-height: 40px; margin-bottom: 16px; padding: 8px; border: 1px solid #b7c7dc; border-radius: 5px; font-size: 13px; }
+.course-controls { display: flex; gap: 8px; margin-bottom: 16px; }
+.course-controls .search-input { flex: 1; min-width: 0; margin: 0; }
+.course-controls button { min-height: 40px; padding: 6px 8px; font-size: 13px; }
 .course-list { display: grid; align-content: start; gap: 12px; max-height: calc(100dvh - 330px); min-height: 180px; overflow: auto; padding: 3px; margin: -3px; }
 .course-card { align-self: start; padding: 12px 10px; border: 1px solid var(--line); border-left: 3px solid var(--course-color); border-radius: 6px; }
 .course-card.selected { background: var(--course-bg); }
@@ -320,7 +324,7 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 .planner-title, .mobile-panels { flex-shrink: 0; }
 .planner-grid { flex: 1; min-height: 0; align-items: stretch; }
 .courses-panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-.courses-panel > .panel-heading, .courses-panel > .search-input { flex-shrink: 0; }
+.courses-panel > .panel-heading, .courses-panel > .course-controls { flex-shrink: 0; }
 .course-list { flex: 1; min-height: 0; max-height: none; }
 .conditions-panel { min-height: 0; overflow: auto; }
 .schedule-panel { display: flex; flex-direction: column; min-height: 0; }
@@ -345,7 +349,8 @@ textarea { min-width: 0; min-height: 210px; padding: 12px; border: 1px solid #b4
 .project-dialog .actions { flex-wrap: wrap; }
 
 @media (max-width: 1100px) {
-  .courses-panel .sidebar-button { display: none; }
+  .course-sidebar-toggle { display: none; }
+  .course-heading { padding-left: 0; }
   .mobile-panels { display: flex; gap: 8px; margin-bottom: 16px; }
   .mobile-panels button { flex: 1; }
   .mobile-panels button[aria-pressed=true] { border-color: var(--blue); background: var(--blue); color: white; }
