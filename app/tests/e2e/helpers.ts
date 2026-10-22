@@ -19,6 +19,26 @@ export async function expectPrimaryActionInViewport(page:Page){
   const height=await page.evaluate(()=>innerHeight);
   expect(box).not.toBeNull();expect(box!.y).toBeGreaterThanOrEqual(0);expect(box!.y+box!.height).toBeLessThanOrEqual(height);
 }
+export function schoolDayProject():Project{
+  const code='DAY1001';const id=JSON.stringify([code,'L','1','1']);
+  return {schemaVersion:1,sources:['Synthetic school-day fixture'],courses:[{code,name:'Full school day',classes:[{id,courseCode:code,type:'L',number:'1',group:'1',meetings:[{day:1,startMinute:480,endMinute:540,weeks:[1],room:'Morning room'},{day:5,startMinute:1020,endMinute:1080,weeks:[1],room:'Evening room'}]}]}],selection:{courseCodes:[code],lockedClassIds:[],blocked:[]}};
+}
+export async function expectSchoolDayInViewport(page:Page){
+  expect(await page.locator('.calendar-head b').allTextContents()).toEqual(['Mon','Tue','Wed','Thu','Fri']);
+  const frame=await page.locator('.calendar-scroll').boundingBox();expect(frame).not.toBeNull();
+  for(const time of ['08:00','18:00']){
+    const box=await page.locator('.time-axis').getByText(time,{exact:true}).boundingBox();expect(box).not.toBeNull();
+    expect(box!.y).toBeGreaterThanOrEqual(frame!.y-1);expect(box!.y+box!.height).toBeLessThanOrEqual(frame!.y+frame!.height+1);
+  }
+  expect(await page.locator('.calendar-scroll').evaluate(e=>e.scrollHeight<=e.clientHeight+1)).toBe(true);
+  expect(await page.locator('.time-axis span').evaluateAll(labels=>labels.every((label,i)=>i===0||labels[i-1].getBoundingClientRect().bottom<=label.getBoundingClientRect().top+1))).toBe(true);
+  for(const day of ['Monday','Friday']){
+    const column=page.getByRole('region',{name:day,exact:true});const box=await column.getByRole('button').boundingBox();
+    expect(box!.y).toBeGreaterThanOrEqual(frame!.y);expect(box!.y+box!.height).toBeLessThanOrEqual(frame!.y+frame!.height+1);
+  }
+  expect(frame!.y+frame!.height).toBeLessThanOrEqual(await page.evaluate(()=>innerHeight));
+  const week=await page.getByLabel('Teaching week').boundingBox();expect(week!.x+week!.width).toBeLessThanOrEqual(await page.evaluate(()=>innerWidth));
+}
 export async function downloadProject(page:Page,path:string){
   const event=page.waitForEvent('download');await page.getByRole('button',{name:'Export project'}).click();await (await event).saveAs(path);
   await page.getByRole('button',{name:'I kept the file'}).click();await expect(page.getByText('Project is up to date')).toBeVisible();

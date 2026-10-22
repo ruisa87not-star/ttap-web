@@ -7,6 +7,7 @@ import {Planner} from './planner/Planner';
 import {ProjectActions,ProjectDialog} from './ProjectActions';
 import {Tutorial} from './help/Tutorial';
 import {RegistrationScreen} from './registration/RegistrationScreen';
+import {version} from '../../package.json';
 
 type View='tutorial'|'import'|'planner'|'registration';
 
@@ -16,6 +17,7 @@ export function App(){
   const [importKey,setImportKey]=useState(0);const main=useRef<HTMLElement>(null);
   const [registrationSources,setRegistrationSources]=useState<HtmlSource[]|undefined>();
   const view=views.at(-1)!;
+  useEffect(()=>{document.title=`TTAP Planner ${version}`;},[]);
   function navigate(next:View){setViews(previous=>previous.at(-1)===next?previous:[...previous,next]);}
   function back(){setViews(previous=>previous.length>1?previous.slice(0,-1):previous);}
   function finishTutorial(){if(views.length===1)navigate('import');else back();}
@@ -74,7 +76,7 @@ export function App(){
   }
   return <><header className="app-header"><div className="header-start">
       {views.length>1&&<button className="back-button quiet" aria-label="Go back" onClick={back}><span aria-hidden="true">←</span> Back</button>}
-      <a className="brand" href="#" aria-label="TTAP UTAR timetable planner" onClick={e=>{e.preventDefault();navigate('import');}}><span className="brand-mark" aria-hidden="true">▦</span>TTAP<span className="brand-description">UTAR timetable planner</span></a>
+      <a className="brand" href="#" aria-label="TTAP UTAR timetable planner" onClick={e=>{e.preventDefault();navigate('import');}}><span className="brand-mark" aria-hidden="true">▦</span><span className="brand-name">TTAP<small className="brand-version">Planner {version}</small></span><span className="brand-description">UTAR timetable planner</span></a>
     </div>{view!=='tutorial'&&<button className="quiet tutorial-button" onClick={()=>navigate('tutorial')}>Tutorial</button>}</header>
     <main ref={main}><div className="project-bar" hidden={view==='tutorial'||view==='registration'}><ProjectActions hasProject={!!project} dirty={dirty} busy={busy} onOpen={open} onImport={()=>{setImportKey(k=>k+1);setRegistrationSources(undefined);navigate('import');}} onExport={()=>exportCurrent()}/></div>
       {error&&!pending&&<p className="error app-message" role="alert">{error}</p>}{notice&&<p className="app-message" role="status">{notice}</p>}

@@ -74,3 +74,19 @@ real login page loads in the attached view. Documentation was completed after
 the review. Installed TTAP was inspected read-only by the implementing agent;
 its runtime was not independently compared. These limits are recorded in
 [VERIFICATION.md](VERIFICATION.md).
+
+## Launcher freshness and full-day calendar — 2026-10-22
+
+A fresh read-only reviewer inspected the focused changes against `317938f`.
+It confirmed one P2: deleting a source file did not update any remaining file's
+timestamp, so the launcher could report the package as current. The regression
+failed before the fix. Freshness now includes source-directory timestamps and
+the presence of required build inputs. Tests also cover modified sources,
+missing packages and a failed rebuild that must not launch the previous package.
+
+The reviewer requested runtime evidence for class details and extended schedules.
+Opening details on a narrow screen reproduced overlapping hourly labels. Details
+now overlay the calendar rather than shrinking its time axis. The browser
+regression failed before this adjustment and passes after it, including closing
+details, Saturday/Sunday periods and an extended 07:00–20:00 range. No further
+source findings were reported. No second independent review was requested.

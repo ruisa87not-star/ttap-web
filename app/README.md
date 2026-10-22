@@ -14,7 +14,11 @@ The compact workspace keeps **Generate** beside the selected course count, above
 the timetable. On smaller screens, switch between **Courses**, **Timetable** and
 **Conditions**; the same Generate/Cancel action is available from every panel.
 Course names use 14px text, with 12px course codes and 11px metadata in the calendar.
-The calendar scrolls independently to retain readable day columns.
+The calendar defaults to **Mon–Fri columns and hourly rows from 08:00 to 18:00**.
+It scales to the available panel height and width, keeping the whole school day
+visible. Weekend classes or unavailable times add Saturday/Sunday automatically;
+earlier or later classes extend the time range. Select a class for its full details
+when the compact calendar truncates text.
 The application frame fits the available viewport. Long course lists, import
 instructions and timetable content scroll inside their own regions. Windows
 startup dimensions and minimum size are limited to the display's work area.
@@ -22,8 +26,13 @@ startup dimensions and minimum size are limited to the display's work area.
 ## Start
 
 On Windows, double-click **[Start-TTAP.cmd](../Start-TTAP.cmd)** in the repository
-root to open the packaged desktop app. It needs no terminal or Node.js once built.
-If the executable is missing, the launcher displays the commands to build it.
+root to open the packaged desktop app. The header and window title identify this
+release as **Planner 0.1.1**. The launcher checks the package against source and
+build-input modification times. If it is missing or older, it rebuilds before
+opening, using the installed Node.js and project dependencies. Build failures
+stay visible and do not fall back to the older package. A current package can
+start without Node.js. If dependencies are missing, the launcher prints the
+installation commands. It always targets this repository's `app/release/` folder.
 
 Use Node.js **24.15 or later** and npm 11 (verified with Node 24.20.0 / npm 11.5.2).
 Run these commands from the repository root:

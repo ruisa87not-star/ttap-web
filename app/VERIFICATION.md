@@ -7,13 +7,13 @@ course-only archived upstream rows were used; no UTAR account was accessed.
 | Check | Result |
 | --- | --- |
 | Strict TypeScript | Passed |
-| Unit/component tests | 120 passed in 17 files |
+| Unit/component tests | 123 passed in 19 files |
 | Production web build | Passed; separate worker emitted |
 | Production Electron build | Passed; sandbox-compatible CommonJS preload |
 | Windows directory packaging | Passed; official installed Electron runtime |
-| Chromium production workflows | 12 passed |
-| Firefox production workflows | 12 passed |
-| Packaged Windows workflows | 6 passed |
+| Chromium production workflows | 13 passed |
+| Firefox production workflows | 13 passed |
+| Packaged Windows workflows | 7 passed |
 | Browser bundle boundary | No Electron IPC, Node imports or global require |
 | Source whitespace check | Passed |
 
@@ -160,3 +160,39 @@ inside its parent bounds. [docs/registration.png](docs/registration.png) capture
 that view's actual content; it is not a composite window screenshot. No account
 or CAPTCHA was submitted. Authenticated timetable layouts, service expiry,
 popups and pagination remain unverified against the live service.
+
+## Launcher and full-day calendar — Planner 0.1.1
+
+The reported root `Start-TTAP.cmd` was executed before editing. Its processes
+resolved to this checkout's `app/release/win-unpacked/TTAP-Planner.exe`, and its
+archive already contained the local renderer, tutorial and integrated login.
+Opening the installed legacy application was not reproduced. The launcher did
+have no check for a stale package. It now compares source/build-input and source
+directory modification times with the archive, rejects missing build inputs,
+and rebuilds when needed. Tests cover current, changed, deleted and missing
+inputs and a failing rebuild that never launches the previous package. This is
+a local freshness check, not a remote update check or content-hash verification.
+
+The real launcher was exercised through `cmd.exe`: it reported `Stale`, built
+the application and opened the repository executable with window title
+`TTAP Planner 0.1.1`. A subsequent check reported `Current`. Rebuilding later
+encountered an open executable lock; after the user closed that window, the
+final Windows package built successfully.
+
+The calendar defaults to five Mon–Fri columns, with time rows spanning
+08:00–18:00. Its positions and durations scale with the available panel height;
+18:00 has a reserved endpoint label. Browser checks at 1280×720, 1024×600,
+375×667 and 320×667 verify both endpoint classes, all five day columns,
+non-overlapping hour labels, no vertical calendar overflow and an in-bounds week
+selector. Opening class details reproduced a compressed-axis regression; an
+overlay now leaves the calendar scale intact. Weekend/evening checks preserve
+Saturday classes, Sunday unavailable time and the 07:00–20:00 range.
+
+The packaged application verifies version 0.1.1 in app metadata, its header and
+window title, and the same full-day geometry at 1280×720 and 1024×600 client
+sizes. Final fresh validation passed strict types, **123 unit/component tests**,
+production web/Electron builds, Windows packaging and **33 runtime tests**
+(13 Chromium, 13 Firefox, 7 Windows). Existing native login, import, project
+exchange and dirty-close checks remain passing. [docs/planner.png](docs/planner.png)
+is the actual final packaged calendar; [docs/school-day-mobile.png](docs/school-day-mobile.png)
+shows the browser's compact layout. These use synthetic class data.

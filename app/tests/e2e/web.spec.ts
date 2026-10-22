@@ -1,9 +1,26 @@
 import {test,expect} from '@playwright/test';
 import {readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {demo,configure,generate,downloadProject,openWebProject,readProject,expectCandidate,difficultProject,expectPrimaryActionInViewport} from './helpers';
+import {demo,configure,generate,downloadProject,openWebProject,readProject,expectCandidate,difficultProject,expectPrimaryActionInViewport,schoolDayProject,expectSchoolDayInViewport} from './helpers';
 
 test.beforeEach(async({page})=>{await page.goto('/');await page.getByRole('button',{name:'Skip tutorial'}).click();});
+
+test('Monday–Friday columns fit the whole 08:00–18:00 day after resizing',async({page},info)=>{
+  const path=info.outputPath('school-day.ttap.json');await writeFile(path,JSON.stringify(schoolDayProject()));await openWebProject(page,path);
+  await page.getByRole('button',{name:'Generate',exact:true}).click();await expect(page.getByText('Option 1 of 1')).toBeVisible();
+  for(const size of [{width:1280,height:720},{width:1024,height:600},{width:375,height:667},{width:320,height:667}]){
+    await page.setViewportSize(size);await expectSchoolDayInViewport(page);await page.screenshot({path:info.outputPath(`school-day-${size.width}.png`)});
+  }
+  await page.getByRole('region',{name:'Friday',exact:true}).getByRole('button').click();await expect(page.locator('.class-details').getByText('Full school day',{exact:true})).toBeVisible();await expectSchoolDayInViewport(page);await page.getByRole('button',{name:'Close details'}).click();await expectSchoolDayInViewport(page);
+  await page.setViewportSize({width:1024,height:600});
+  const extended=schoolDayProject();extended.courses[0].classes[0].meetings=[{day:6,startMinute:1080,endMinute:1200,weeks:[1],room:'Evening room'}];extended.selection.blocked=[{day:7,startMinute:420,endMinute:480}];
+  const extendedPath=info.outputPath('weekend-evening.ttap.json');await writeFile(extendedPath,JSON.stringify(extended));await openWebProject(page,extendedPath);await page.getByRole('button',{name:'Generate',exact:true}).click();
+  await expect(page.getByRole('region',{name:'Saturday',exact:true}).getByRole('button',{name:/18:00 to 20:00/})).toBeInViewport();
+  await expect(page.getByRole('region',{name:'Sunday',exact:true}).getByText('Unavailable')).toBeInViewport();
+  await expect(page.locator('.time-axis').getByText('07:00',{exact:true})).toBeInViewport();await expect(page.locator('.time-axis').getByText('20:00',{exact:true})).toBeInViewport();
+  expect(await page.locator('.calendar-scroll').evaluate(e=>e.scrollHeight<=e.clientHeight+1)).toBe(true);
+  await page.screenshot({path:info.outputPath('weekend-evening.png')});
+});
 
 test('opens registration inside the browser app and returns to the import form',async({page})=>{
   await page.route('https://unitreg.utar.edu.my/**',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><h1>UTAR embedded test fixture</h1>'}));

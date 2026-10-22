@@ -1,10 +1,22 @@
 import {test,expect,_electron,type ElectronApplication} from '@playwright/test';
 import {resolve} from 'node:path';
 import {readFile,writeFile} from 'node:fs/promises';
-import {demo,configure,generate,downloadProject,openWebProject,readProject,expectCandidate,expectPrimaryActionInViewport} from './helpers';
+import {demo,configure,generate,downloadProject,openWebProject,readProject,expectCandidate,expectPrimaryActionInViewport,schoolDayProject,expectSchoolDayInViewport} from './helpers';
 let app:ElectronApplication;
 test.beforeEach(async()=>{app=await _electron.launch({executablePath:resolve('release/win-unpacked/TTAP-Planner.exe')});const page=await app.firstWindow();await page.getByRole('button',{name:'Skip tutorial'}).click();});
 test.afterEach(async()=>{if(app){await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().forEach(w=>w.destroy())).catch(()=>{});await app.close();}});
+
+test('packaged Planner 0.1.1 fits Monday–Friday and 08:00–18:00 in the window',async({},info)=>{
+  const page=await app.firstWindow();await expect(page.getByText('Planner 0.1.1',{exact:true})).toBeVisible();await expect(page).toHaveTitle('TTAP Planner 0.1.1');
+  expect(await app.evaluate(({app})=>app.getVersion())).toBe('0.1.1');
+  const path=info.outputPath('school-day.ttap.json');await writeFile(path,JSON.stringify(schoolDayProject()));
+  await app.evaluate(({dialog},filePath)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths:[filePath]});},path);
+  await page.getByRole('button',{name:'Open project'}).click();await page.getByRole('button',{name:'Generate',exact:true}).click();await expect(page.getByText('Option 1 of 1')).toBeVisible();
+  for(const size of [[1280,720],[1024,600]]){
+    await app.evaluate(({BrowserWindow},[width,height])=>BrowserWindow.getAllWindows()[0].setContentSize(width,height),size);await expectSchoolDayInViewport(page);
+    await page.screenshot({path:info.outputPath(`school-day-native-${size[0]}.png`)});
+  }
+});
 
 test('official login, manual guide and reversible navigation work in the packaged app',async({},info)=>{
   const page=await app.firstWindow();const html=await readFile('tests/fixtures/student-v2.html','utf8');
