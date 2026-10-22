@@ -5,6 +5,9 @@ the same interface, HTML importer, solver and versioned `.ttap.json` project fil
 The original application remains in the repository root; install the new app
 independently, without running the root package installation.
 
+Development branch: [`codex/electron-redesign`](https://github.com/ruisa87not-star/ttap-web/tree/codex/electron-redesign)
+in the [GitHub fork](https://github.com/ruisa87not-star/ttap-web).
+
 ![Packaged Windows timetable planner](docs/planner.png)
 
 ## Start
@@ -110,3 +113,4 @@ The recorded verification result and remaining runtime limitations are in
 [REVIEW.md](REVIEW.md). Source attribution and deliberate rule changes
 are in [UPSTREAM.md](UPSTREAM.md). Original MIT notice: [LICENSE](LICENSE).
 Bundled third-party notices: [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
+Execution decisions and their tradeoffs: [DECISIONS.md](DECISIONS.md).

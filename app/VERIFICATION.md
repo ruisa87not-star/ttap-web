@@ -51,7 +51,13 @@ After the fixes, both production builds, Windows packaging and all **16 runtime
 tests** passed. The archived td/Mode and spanned-Remark fixture was exercised in
 Chromium, Firefox and the native HTML picker, preserving both lecture meetings.
 
-GitHub authorization has been verified through the configured Git credential
-helper. Credentials are kept in memory for the authorized GitHub request and
-are never printed or written to files. Fork creation/push follow the remaining
-production runtime gate.
+GitHub authorization was verified through the configured Git credential helper.
+Credentials were never printed or written to files. The actual
+[ruisa87not-star/ttap-web fork](https://github.com/ruisa87not-star/ttap-web)
+was created with parent `wongjiahau/ttap-web`; the reviewed implementation
+(`4e21198`) was pushed to
+[`codex/electron-redesign`](https://github.com/ruisa87not-star/ttap-web/tree/codex/electron-redesign).
+The GitHub page confirms the fork/branch, and `git ls-remote` confirms equality
+with the local commit. The original `upstream` remote remains intact. No PR or
+hosted website was created. User-owned `suggestion/` files remain untracked and
+unchanged.

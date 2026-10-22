@@ -215,10 +215,10 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
 
 **Interfaces:** `upstream` 保留 `https://github.com/wongjiahau/ttap-web.git`；`origin` 指向實際建立或已存在的使用者 fork；成果分支為 `codex/electron-redesign`。
 
-- [ ] **Step 1:** 檢查當時可用的 GitHub 工具或已登入的 GitHub 瀏覽器帳號；在可操作帳號下建立原專案 fork，或重用其既有 fork。沒有登入時，先完成所有不受影響的本機成果，再請使用者完成登入；不能把本機 checkout 說成遠端 fork。
-- [ ] **Step 2:** 確認 GitHub 顯示 fork parent 是 wongjiahau/ttap-web，才將該 URL 設為 origin。已存在 origin 時先核對，不能盲目覆蓋。
-- [ ] **Step 3:** 在 Task 7 的必要檢查通過且審閱完成後，push `codex/electron-redesign` 至 origin，不推送 upstream、不 force push、不發佈網站、不建立額外 PR。
-- [ ] **Step 4:** 以 GitHub 頁面與 `git ls-remote origin refs/heads/codex/electron-redesign` 核對遠端 SHA，並檢查工作目錄乾淨。交付 fork 連結、啟動命令、網頁與 Windows 產物位置和驗證結果。若遠端登入仍未完成，清楚列為剩餘工作。
+- [x] **Step 1:** 檢查當時可用的 GitHub 工具或已登入的 GitHub 瀏覽器帳號；在可操作帳號下建立原專案 fork，或重用其既有 fork。沒有登入時，先完成所有不受影響的本機成果，再請使用者完成登入；不能把本機 checkout 說成遠端 fork。
+- [x] **Step 2:** 確認 GitHub 顯示 fork parent 是 wongjiahau/ttap-web，才將該 URL 設為 origin。已存在 origin 時先核對，不能盲目覆蓋。
+- [x] **Step 3:** 在 Task 7 的必要檢查通過且審閱完成後，push `codex/electron-redesign` 至 origin，不推送 upstream、不 force push、不發佈網站、不建立額外 PR。
+- [x] **Step 4:** 以 GitHub 頁面與 `git ls-remote origin refs/heads/codex/electron-redesign` 核對遠端 SHA，並檢查工作目錄乾淨。交付 fork 連結、啟動命令、網頁與 Windows 產物位置和驗證結果。若遠端登入仍未完成，清楚列為剩餘工作。
 
 ## Execution Handoff
 
