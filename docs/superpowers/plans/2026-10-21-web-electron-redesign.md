@@ -131,7 +131,7 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
 
 **Interfaces:** `SolverClient.solve(input: SolveInput): Promise<SolveResult>`、`cancel(): void`、`dispose(): void`；取消使用 AbortError，銷毀 Worker，新的 solve 建立新 Worker。訊息為 `{ requestId, input }` 與 `{ requestId, result }` 或 `{ requestId, error }`。`Planner({ project, onChange }: { project: Project; onChange: (p: Project) => void })` 由 App 持有專案；候選結果不寫回 Project。
 
-- [ ] **Step 1:** 使用可控制回覆的 Worker 測試替身，測試 `cancelThenSolve`、`ignoreOldResponseAfterNewImport`、錯誤與 dispose。畫面測試：選科及固定班別可更新 Project；更改不可上課時段後舊結果失效；取消不顯示錯誤；無解顯示目前條件；500 筆上限提示；切換候選／週次會更新課表。課表測試相同時段、不同週的兩堂能在各週正確顯示。
+- [x] **Step 1:** 使用可控制回覆的 Worker 測試替身，測試 `cancelThenSolve`、`ignoreOldResponseAfterNewImport`、錯誤與 dispose。畫面測試：選科及固定班別可更新 Project；更改不可上課時段後舊結果失效；取消不顯示錯誤；無解顯示目前條件；500 筆上限提示；切換候選／週次會更新課表。課表測試相同時段、不同週的兩堂能在各週正確顯示。
   以測試替身延後 Worker 回覆，在已選科目的 `makeProject()` 測試計算期間的操作：
   ```ts
   it('keepsCancellationAvailableDuringSearch', async () => {
@@ -140,10 +140,10 @@ Task 順序為 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8；此順序讓每一�
     expect(screen.getByRole('button', { name: 'Cancel calculation' })).toBeEnabled();
   });
   ```
-- [ ] **Step 2:** 執行 `npm --prefix app test -- tests/workers tests/planner`，確認尚無對應行為而失敗。
-- [ ] **Step 3:** 實作上述介面，套用少量元件狀態與 Web Worker，不把求解搬回主執行緒。條件或專案更換即取消舊工作，requestId 過期回覆不能更動畫面。完成搜尋科目、L/T/P 班別、固定班別、日期／開始／結束時間的限制表單、候選切換與週次選擇；課表顯示時間、科目、類型、班別、教室及週次。科目 checkbox 的 accessible name 為 `{code} {name}`，課表 region 為 Weekly timetable，計算按鈕為 Generate 及 Cancel calculation。桌面三欄、窄視窗面板切換，具標籤、鍵盤焦點及非 hover 操作。
-- [ ] **Step 4:** 執行本 Task 測試、完整單元測試、typecheck 及 build:web。瀏覽器實際驗證範例可產生課表，計算期間仍可按取消；清空科目不顯示舊成功結果。
-- [ ] **Step 5:** 提交 `feat: arrange and browse timetables in the shared interface`。
+- [x] **Step 2:** 執行 `npm --prefix app test -- tests/workers tests/planner`，確認尚無對應行為而失敗。
+- [x] **Step 3:** 實作上述介面，套用少量元件狀態與 Web Worker，不把求解搬回主執行緒。條件或專案更換即取消舊工作，requestId 過期回覆不能更動畫面。完成搜尋科目、L/T/P 班別、固定班別、日期／開始／結束時間的限制表單、候選切換與週次選擇；課表顯示時間、科目、類型、班別、教室及週次。科目 checkbox 的 accessible name 為 `{code} {name}`，課表 region 為 Weekly timetable，計算按鈕為 Generate 及 Cancel calculation。桌面三欄、窄視窗面板切換，具標籤、鍵盤焦點及非 hover 操作。
+- [x] **Step 4:** 執行本 Task 測試、完整單元測試、typecheck 及 build:web。瀏覽器實際驗證範例可產生課表，計算期間仍可按取消；清空科目不顯示舊成功結果。
+- [x] **Step 5:** 提交 `feat: arrange and browse timetables in the shared interface`。
 
 ## Task 5: 網頁專案檔存取與未輸出變更
 
