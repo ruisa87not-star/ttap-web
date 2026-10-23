@@ -3,7 +3,7 @@ import {readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {demo,configure,waitForTimetable,downloadImage,importFixturePlan,importPlan,expectPrimaryActionInViewport,schoolDayProject,expectSchoolDayInViewport} from './helpers';
 
-test.beforeEach(async({page})=>{await page.route('https://unitreg.utar.edu.my/**',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><h1>UTAR embedded test fixture</h1>'}));await page.goto('/');await page.getByRole('button',{name:'Skip tutorial'}).click();});
+test.beforeEach(async({page})=>{const login=await readFile('tests/fixtures/registration-web-login.html','utf8');await page.route('https://unitreg.utar.edu.my/**',route=>route.fulfill({contentType:'text/html',body:login}));await page.goto('/');await page.getByRole('button',{name:'Skip tutorial'}).click();});
 
 test('Monday–Sunday rows and horizontal 08:00–18:00 fit after resizing',async({page},info)=>{
   const path=info.outputPath('school-day.ttap.json');await writeFile(path,JSON.stringify(schoolDayProject()));await importFixturePlan(page,path);
@@ -24,14 +24,38 @@ test('Monday–Sunday rows and horizontal 08:00–18:00 fit after resizing',asyn
 
 test('skip directly reveals a compact embedded registration and a dismissible manual dialog',async({page},info)=>{
   await expect(page.getByRole('region',{name:'Integrated course registration'})).toBeVisible();await expect(page.getByRole('link',{name:'Open Course Registration System'})).toHaveCount(0);
-  await expect(page.frameLocator('iframe[title="UTAR Course Registration System"]').getByRole('heading',{name:'UTAR embedded test fixture'})).toBeVisible();
-  const box=await page.locator('.registration-frame').boundingBox();expect(box!.width).toBeLessThanOrEqual(896);expect(box!.height).toBeLessThanOrEqual(340);await page.screenshot({path:info.outputPath('registration-home.png')});
+  await expect(page.frameLocator('iframe[title="UTAR Course Registration System"]').getByLabel('Password')).toBeInViewport();
+  const box=await page.locator('.registration-web-viewport').boundingBox();expect(box!.width).toBeLessThanOrEqual(896);expect(box!.height).toBeLessThanOrEqual(340);await page.screenshot({path:info.outputPath('registration-home.png')});
   await page.getByRole('button',{name:'Add slots manually'}).click();const dialog=page.getByRole('dialog',{name:'Add slots manually'});await expect(dialog).toBeVisible();
   await dialog.getByText('View step-by-step screenshots',{exact:true}).click();
   expect(await dialog.locator('.guide-images img').evaluateAll(images=>images.length===2&&images.every(image=>(image as HTMLImageElement).complete&&(image as HTMLImageElement).naturalWidth>0))).toBe(true);
   await page.screenshot({path:info.outputPath('illustrated-guide.png')});
   await page.getByRole('button',{name:'Paste HTML'}).click();await expect(dialog).toBeVisible();await page.mouse.click(4,4);await expect(dialog).toHaveCount(0);await expect(page.getByRole('button',{name:'Add slots manually'})).toBeFocused();
   await page.getByRole('button',{name:'Add slots manually'}).click();await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);
+});
+
+test('browser compact login hides the banner and announcements, keeps the real form and can reveal subsequent pages',async({page},info)=>{
+  const html=await readFile('tests/fixtures/registration-web-login.html','utf8');await page.route('https://unitreg.utar.edu.my/**',route=>route.fulfill({contentType:'text/html',body:html}));await page.reload();await page.getByRole('button',{name:'Skip tutorial'}).click();
+  await expect(page.getByRole('button',{name:'Show full page'})).toBeVisible();
+  const frame=page.frameLocator('iframe[title="UTAR Course Registration System"]');
+  for(const size of [{width:1280,height:720},{width:1024,height:600}]){
+    await page.setViewportSize(size);const crop=await page.locator('.registration-web-crop').boundingBox();const banner=await frame.locator('#university-banner').boundingBox(),form=await frame.locator('form table').boundingBox(),clock=await frame.locator('#server-clock').boundingBox(),announcement=await frame.locator('#unrelated-announcement').boundingBox();
+    expect(banner!.y+banner!.height).toBeLessThanOrEqual(crop!.y);expect(form!.x).toBeGreaterThanOrEqual(crop!.x);expect(form!.x+form!.width).toBeLessThanOrEqual(crop!.x+crop!.width+1);expect(form!.y).toBeGreaterThanOrEqual(crop!.y);expect(clock!.y+clock!.height).toBeLessThanOrEqual(crop!.y+crop!.height);expect(announcement!.y).toBeGreaterThanOrEqual(crop!.y+crop!.height);
+    const before=await frame.locator('body').evaluate(()=>scrollY);await page.mouse.move(form!.x+form!.width/2,form!.y+20);await page.mouse.wheel(0,800);expect(await frame.locator('body').evaluate(()=>scrollY)).toBe(before);
+  }
+  for(const width of [375,320]){
+    await page.setViewportSize({width,height:667});await frame.getByLabel('Password').fill('synthetic-only');await expect(frame.getByLabel('Password')).toBeInViewport();
+    const viewport=page.locator('.registration-web-viewport'),bounds=(await viewport.boundingBox())!,input=(await frame.getByLabel('Password').boundingBox())!;
+    await page.mouse.move(bounds.x+bounds.width/2,bounds.y+bounds.height/2);await page.mouse.wheel(Math.max(0,input.x+input.width-bounds.x-bounds.width+12),0);
+    await expect.poll(async()=>{const input=(await frame.getByLabel('Password').boundingBox())!;return input.x>=bounds.x&&input.x+input.width<=bounds.x+bounds.width;}).toBe(true);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight)).toBe(true);await expect(page.getByRole('button',{name:'Show full page'})).toBeInViewport();
+    await page.screenshot({path:info.outputPath(`web-compact-login-${width}.png`)});
+  }
+  await page.setViewportSize({width:1280,height:720});await frame.getByLabel('Student ID').fill('synthetic-only');
+  await page.getByRole('button',{name:'Show full page'}).click();await expect(frame.getByLabel('Student ID')).toHaveValue('synthetic-only');await page.getByRole('button',{name:'Compact login'}).click();await expect(frame.getByLabel('Student ID')).toHaveValue('synthetic-only');
+  await page.screenshot({path:info.outputPath('web-compact-login.png')});
+  await page.route('https://unitreg.utar.edu.my/**/loginProSurvey.jsp',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><h1>Registration page fixture</h1><p role="alert">Synthetic login error remains visible.</p>'}));await frame.getByRole('button',{name:'Login',exact:true}).click();await expect(page.getByRole('button',{name:'Compact login'})).toBeVisible();await expect(frame.getByRole('heading',{name:'Registration page fixture'})).toBeInViewport();await expect(frame.getByRole('alert')).toBeInViewport();
+  await page.getByRole('button',{name:'Reload',exact:true}).click();await expect(page.getByRole('button',{name:'Show full page'})).toBeVisible();await expect(frame.getByLabel('Student ID')).toHaveValue('');
 });
 
 test('demo opens a full catalog alongside the timetable, summary and visual constraints',async({page},info)=>{

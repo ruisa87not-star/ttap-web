@@ -161,3 +161,22 @@ icons on non-Windows systems (outside the Windows release). These exclusions
 are accepted for this revision. No second review was requested. The reviewer did
 not rerun tests; the implementing agent's fresh gates passed 144 unit/component
 and 44 runtime tests, strict types, web/Electron builds and Windows packaging.
+
+## Compact browser registration — 2026-10-23
+
+A fresh read-only reviewer inspected the web-only changes against `7e3ce34`.
+It reported no actionable P1/P2 findings. It verified that the native path is
+unchanged, the compact/full switch preserves the official iframe and inputs,
+subsequent document loads reveal full view, and Reload resets the compact login.
+The live unauthenticated capture supports the intended presentation.
+
+Accepted limitations: authenticated registration/session cookies remain untested;
+cross-origin clipping cannot remove off-crop keyboard links from UTAR's DOM;
+future page geometry may require adjusting the crop. Show full page appears
+before the iframe and remains available for all original content. The reviewer
+reproduced scroll retention with an artificial 4,400px page, but the current
+public login measured 1,087px and does not encounter it. That future/tall-page
+case is outside this scoped visual correction. No second review was requested.
+The implementing agent passed 145 unit/component tests, strict types, web and
+Electron builds, and 38 Chromium/Firefox workflows. The reviewer did not rerun
+the broad suite or start servers.

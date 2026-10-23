@@ -1,5 +1,42 @@
 # Verification — latest revision 2026-10-23
 
+## Compact browser registration login — 2026-10-23
+
+The reported difference was confirmed: Electron inserts presentation CSS into
+its isolated native view; the browser used a normal scrolling cross-origin
+iframe showing UTAR's banner and announcements. A new regression failed on the
+missing compact/full-view behavior before implementation. The web iframe now
+uses an outer visual crop measured from the actual public login layout, leaving
+the official document, form, scripts, CAPTCHA and HTTPS submission intact.
+
+Fresh checks passed strict TypeScript, **145 unit/component tests in 25 files**,
+production web/Electron builds and **38 browser workflows** (19 Chromium,
+19 Firefox). An initial simultaneous unit/build run timed out in two existing
+App tests; the subsequent complete check passed without timeout or assertion
+changes. Browser geometry checks caught a 2px announcement edge in the initial
+crop; reducing its height resolved that issue in both engines.
+
+Runtime checks verify banner/footer exclusion, form/clock containment at
+1280×720 and 1024×600, no vertical page movement from wheel input in compact
+mode, input preservation when toggling the same iframe, automatic full view for
+the next document/error response, and compact reset on Reload. At 375px and
+320px, the app stays within the viewport and the real password field remains
+reachable through horizontal panning. Full view is always available for content
+outside the crop, including keyboard-accessible off-crop links.
+
+The live unauthenticated UTAR page was loaded in a separate browser tab and then
+through the production web app. Visual inspection confirmed title, login form,
+CAPTCHA and server clock without banner/announcements. Actual capture:
+[docs/web-registration.png](docs/web-registration.png). No credentials or CAPTCHA
+response were submitted to UTAR; automated form navigation uses synthetic data
+and a local intercepted fixture response. The crop depends on UTAR's current
+public layout and cannot inspect cross-origin login messages; the complete-page
+and official-page fallbacks remain available.
+
+No dependencies or native registration logic changed. The Electron build passed;
+this web-only fix did not repackage or replace the running Windows application.
+User-owned root reference PNGs and suggestion/ remain untouched and excluded.
+
 ## Clear, fixed sidebar control and fork logo — Planner 0.5.0
 
 Fresh checks passed strict TypeScript, **144 unit/component tests in 25 files**,

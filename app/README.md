@@ -150,12 +150,21 @@ options; use **Back to planner** to resume. Desktop login stays inside an isolat
 in-memory session without local file APIs. It closes with the app. The app does
 not automatically register courses.
 
-The web version embeds the same official page in an iframe. UTAR's frame or
-third-party-cookie policies may prevent browser login; its registration screen
-provides a direct-page fallback and saved HTML import. Desktop embedding does
-not depend on iframe permission. The desktop-only login presentation does not
-recreate the form or read its field values; normal browser cross-origin rules
-prevent applying that presentation inside the web iframe. Desktop login errors
+The web version embeds the same official page in an iframe. Its default
+**Compact login view** crops the banner and announcements, showing the title,
+real login form, CAPTCHA and server clock in a compact viewport. **Show full
+page** exposes the complete original page; switching modes retains the same
+iframe and its inputs. A subsequent document load, such as a login response,
+automatically switches to full view so errors and course pages stay accessible.
+**Reload** returns to the initial compact login. Narrow screens allow horizontal
+panning within the login surface. See the [actual public login capture](docs/web-registration.png).
+
+The crop uses measured public-page geometry, rather than modifying UTAR's
+cross-origin DOM. If UTAR changes its layout, choose Show full page until the
+crop is adjusted. UTAR's frame or third-party-cookie policies may prevent browser
+login; Open official page and saved HTML import remain available. Desktop
+embedding does not depend on iframe permission. Neither presentation recreates
+the form or reads its field values. Desktop login errors
 are shown as bounded plain text above the form, without
 reading input values. A failed network request reports its error code; an HTTP
 failure reports its status and offers Reload. Nonfatal login messages leave the

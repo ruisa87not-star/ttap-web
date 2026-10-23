@@ -87,6 +87,9 @@ main { display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100
 .registration-toolbar button { min-height: 32px; padding: 5px 8px; font-size: 12px; }
 .registration-status { flex-shrink: 0; margin: 8px 0; font-size: 12px; }
 .registration-slot, .registration-frame { flex: 1; width: 100%; min-width: 0; min-height: 0; border: 1px solid var(--line); border-radius: 6px; background: white; }
+.registration-web-viewport { display: flex; align-items: center; flex: 1; min-width: 0; min-height: 0; max-height: 340px; overflow-x: auto; overflow-y: hidden; overscroll-behavior: contain; border: 1px solid var(--line); border-radius: 6px; background: white; }
+.registration-web-crop { position: relative; flex-shrink: 0; overflow: clip; margin-inline: auto; }
+.registration-web-crop > .registration-frame { position: absolute; max-width: none; max-height: none; border: 0; border-radius: 0; transform-origin: top left; }
 .registration-error { padding: 24px; }
 .registration-error h2 { font-size: 21px; }
 @media (max-width: 950px) { .registration-toolbar { align-items: flex-start; flex-direction: column; } .registration-toolbar h1 { font-size: 21px; } .registration-toolbar button { min-height: 36px; font-size: 13px; } }

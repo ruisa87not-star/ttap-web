@@ -4,6 +4,15 @@ import {afterEach,expect,it,vi} from 'vitest';
 import {RegistrationScreen} from '../../src/renderer/registration/RegistrationScreen';
 import type {FileOutcome,HtmlSource} from '../../src/shared/model';
 afterEach(()=>{delete window.ttap;});
+it('offers compact and full browser views without replacing the official iframe',async()=>{
+  render(<RegistrationScreen onSource={vi.fn()} suspended={false}/>);
+  const frame=screen.getByTitle('UTAR Course Registration System');
+  expect(frame).toHaveAttribute('scrolling','no');
+  await userEvent.click(screen.getByRole('button',{name:'Show full page'}));
+  expect(screen.getByTitle('UTAR Course Registration System')).toBe(frame);expect(frame).toHaveAttribute('scrolling','auto');
+  await userEvent.click(screen.getByRole('button',{name:'Compact login'}));expect(frame).toHaveAttribute('scrolling','no');
+  expect(screen.queryByRole('button',{name:'Preview courses from this page'})).toBeNull();
+});
 function deferred(){
   let finish!:(value:FileOutcome<HtmlSource>)=>void;
   window.ttap={openRegistration:vi.fn().mockResolvedValue(undefined),setRegistrationBounds:vi.fn(),getRegistrationStatus:vi.fn().mockResolvedValue({loading:false,error:''}),reloadRegistration:vi.fn(),readRegistrationPage:vi.fn().mockImplementation(()=>new Promise(resolve=>{finish=resolve;})),pickHtml:vi.fn(),openProject:vi.fn(),exportImage:vi.fn(),exportProject:vi.fn(),setDirty:vi.fn(),onCloseRequested:()=>()=>{},confirmClose:vi.fn()};
