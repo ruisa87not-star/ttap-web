@@ -180,3 +180,17 @@ case is outside this scoped visual correction. No second review was requested.
 The implementing agent passed 145 unit/component tests, strict types, web and
 Electron builds, and 38 Chromium/Firefox workflows. The reviewer did not rerun
 the broad suite or start servers.
+
+## Windows Beta installer — 0.5.1-beta.1
+
+A fresh read-only reviewer checked the working tree against `29eb972`, including
+NSIS configuration, version propagation, the installer lifecycle test and public
+release notes. It reported no actionable P1/P2 findings. It confirmed all 13
+packaged application/assets/notice files match their sources, the normalized
+package version is 0.5.1-beta.1, and the installer checksum/signing status match
+the record. Existing-installation guards and actual cleanup checks were accepted.
+
+Set aside during review: the full runtime run (subsequently passed all 46),
+commit/tag alignment and public asset verification (separate publication gates),
+clean-machine behavior (unavailable and disclosed), and authenticated UTAR flows
+(no account login submitted; disclosed). No second review was requested.

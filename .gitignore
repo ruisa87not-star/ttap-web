@@ -27,5 +27,6 @@ app/out/
 app/dist-web/
 app/release/
 app/test-results/
+app/test-results-installer/
 app/playwright-report/
 

@@ -3,6 +3,7 @@ import {resolve} from 'node:path';
 import {readFile,writeFile} from 'node:fs/promises';
 import {demo,configure,waitForTimetable,downloadImage,importFixturePlan,readProject,expectCandidate,expectPrimaryActionInViewport,importPlan,schoolDayProject,expectSchoolDayInViewport} from './helpers';
 let app:ElectronApplication;
+const {version}=JSON.parse(await readFile(new URL('../../package.json',import.meta.url),'utf8')) as {version:string};
 test.beforeEach(async()=>{
   app=await _electron.launch({executablePath:resolve('release/win-unpacked/TTAP-Planner.exe')});
   await expect.poll(()=>app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].isMaximized())).toBe(true);
@@ -12,9 +13,9 @@ test.beforeEach(async()=>{
 });
 test.afterEach(async()=>{if(app){await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().forEach(w=>w.destroy())).catch(()=>{});await app.close();}});
 
-test('packaged Planner 0.5.0 fits weekday rows and horizontal 08:00–18:00',async({},info)=>{
-  const page=await app.firstWindow();await expect(page.getByText('Planner 0.5.0',{exact:true})).toBeVisible();await expect(page).toHaveTitle('TTAP Planner 0.5.0');
-  expect(await app.evaluate(({app})=>app.getVersion())).toBe('0.5.0');
+test('packaged release fits weekday rows and horizontal 08:00–18:00',async({},info)=>{
+  const page=await app.firstWindow();await expect(page.getByText(`Planner ${version}`,{exact:true})).toBeVisible();await expect(page).toHaveTitle(`TTAP Planner ${version}`);
+  expect(await app.evaluate(({app})=>app.getVersion())).toBe(version);
   expect(await page.locator('.brand-mark').evaluate(image=>(image as HTMLImageElement).naturalWidth>0)).toBe(true);
   expect(await page.evaluate(async()=>{const href=document.querySelector<HTMLLinkElement>('link[rel=icon]')!.href;return (await fetch(href)).ok;})).toBe(true);
   await importPlan(page,schoolDayProject());await expect(page.getByText('Option 1 of 1')).toBeVisible();

@@ -16,3 +16,14 @@ win:
   icon: src/assets/fork-logo.png
   target: dir
   executableName: TTAP-Planner
+nsis:
+  artifactName: TTAP-Planner-Setup-${version}-${arch}.${ext}
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: TTAP Planner
+  runAfterFinish: false
+  deleteAppDataOnUninstall: false

@@ -5,8 +5,14 @@ the same interface, HTML importer, solver and PNG registration-guide export.
 The original application remains in the repository root; install the new app
 independently, without running the root package installation.
 
-Development branch: [`codex/electron-redesign`](https://github.com/ruisa87not-star/ttap-web/tree/codex/electron-redesign)
-in the [GitHub fork](https://github.com/ruisa87not-star/ttap-web).
+Windows download: [0.5.1-beta.1 release](https://github.com/ruisa87not-star/youtar-ttap/releases/tag/v0.5.1-beta.1).
+Choose **TTAP-Planner-Setup-0.5.1-beta.1-x64.exe** from Assets. Install and open
+TTAP Planner from the desktop or Start menu. No Node.js or source checkout is
+needed. This unsigned Beta may show Windows publisher/SmartScreen prompts;
+see the [release notes and limitations](docs/releases/v0.5.1-beta.1.md).
+
+Development branch: [`codex/electron-redesign`](https://github.com/ruisa87not-star/youtar-ttap/tree/codex/electron-redesign)
+in the [GitHub fork](https://github.com/ruisa87not-star/youtar-ttap).
 
 ![Packaged Windows timetable planner](docs/planner.png)
 
@@ -37,7 +43,7 @@ the display's work area.
 
 On Windows, double-click **[Start-TTAP.cmd](../Start-TTAP.cmd)** in the repository
 root to open the packaged desktop app. The header and window title identify this
-release as **Planner 0.5.0**. The supplied fork logo appears in the header,
+release as **Planner 0.5.1-beta.1**. The supplied fork logo appears in the header,
 browser tab and Windows application icon. The launcher checks the package against source and
 build-input modification times. If it is missing or older, it rebuilds before
 opening, using the installed Node.js and project dependencies. Build failures
@@ -62,6 +68,7 @@ npm --prefix app run build:web
 npm --prefix app run preview:web
 npm --prefix app run build:desktop
 npm --prefix app run package:win
+npm --prefix app run release:win
 ```
 
 | Output | Location |
@@ -70,12 +77,20 @@ npm --prefix app run package:win
 | Electron main, preload and renderer | `app/out/` |
 | Windows application folder | `app/release/win-unpacked/` |
 | Windows executable | `app/release/win-unpacked/TTAP-Planner.exe` |
+| Windows x64 installer | `app/release/TTAP-Planner-Setup-0.5.1-beta.1-x64.exe` |
 
 Serve `dist-web` over HTTP(S); opening `index.html` with `file://` is unsupported.
-Copy the **entire** Windows folder when sharing it. This development build has no
-installer, automatic updater, or configured signing certificate. Build it on
+Copy the **entire** unpacked Windows folder when sharing a directory build, or
+share the single NSIS installer produced by release:win. The installer runs for
+the current user, supports folder selection, creates shortcuts and includes an
+uninstaller. There is no automatic updater or configured signing certificate. Build it on
 Windows for the installed host architecture; packaging reuses the official
 Electron distribution installed in `app/node_modules/electron/dist`.
+
+`npm --prefix app run test:installer` verifies the installer in a fresh directory
+and profile, with Node.js removed from the launched app's PATH, then uninstalls.
+It refuses to replace an existing TTAP Planner installation or its shortcuts.
+Use a separate test account for that check when the app is already installed.
 
 ## Arrange a timetable
 

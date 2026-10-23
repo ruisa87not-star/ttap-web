@@ -1,5 +1,41 @@
 # Verification — latest revision 2026-10-23
 
+## First downloadable Windows Beta — 0.5.1-beta.1
+
+The NSIS x64 installer was built with release:win, retaining package:win's
+directory output for the local launcher. The installer supports folder selection,
+desktop/Start menu shortcuts and removal, with application-data deletion disabled.
+It is unsigned (Authenticode NotSigned); the release notes identify that clearly.
+
+Fresh checks passed strict TypeScript, **145 unit/component tests in 25 files**,
+web/Electron builds, the NSIS build, and all **46 standard runtime tests**
+(19 Chromium, 19 Firefox, 8 packaged Windows). Both full and production-only
+npm audit reported zero vulnerabilities. An initial unit run overlapping packaging
+hit three existing 5s timeouts; all 145 passed with two workers after packaging,
+without changing assertions or timeouts. The root launcher reports Current.
+
+The additional **installer lifecycle test passed**: it refused preexisting TTAP
+Planner installations/shortcuts, installed into a fresh workspace directory,
+confirmed both shortcuts, launched with only Windows directories on PATH, verified
+the isolated profile, version, packaged state and maximized window, selected a
+demo course and exported a valid PNG. The actual uninstaller removed the app,
+shortcuts and uninstall registration. An earlier harness expected spaces in the
+uninstaller filename; it now uses the actual Uninstall TTAP-Planner.exe name.
+That test installation was cleaned using its verified workspace path and matching
+registry entry. The original installed TTAP application remains separate.
+
+Installer: TTAP-Planner-Setup-0.5.1-beta.1-x64.exe, **114,050,645 bytes**.
+SHA-256: **cdbe7b59dcb2b190d2ec4d5d291022490d86f7e8a10400f3801b3c6cecb6cf61**.
+The installer and SHA256SUMS.txt are release assets, not committed binaries.
+A read-only independent review confirmed artifact/source alignment and reported
+no actionable P1/P2 findings; see REVIEW.md.
+
+Windows Sandbox/a clean VM was unavailable. This is an isolated installation on
+the existing Windows 11 host, not a clean-machine certification. Windows 10 and
+authenticated UTAR login/registration remain unverified. Those limits, unsigned
+status and the absence of an automatic updater are disclosed in the release notes.
+No credentials, user reference PNGs or suggestion/ files are included in the release.
+
 ## Compact browser registration login — 2026-10-23
 
 The reported difference was confirmed: Electron inserts presentation CSS into
